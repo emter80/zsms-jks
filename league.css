@@ -33,3 +33,20 @@
   .league { font-size: .88rem; }
   .league th, .league td { padding: 9px 8px; }
 }
+
+/* phones: the table must fit the screen without side scrolling */
+@media (max-width: 560px) {
+  main { padding: 0 10px; }
+  .job { padding: 16px 10px; }
+  .job header h3 { font-size: 1.05rem; }
+  .table-wrap { margin-top: 12px; }
+
+  .league { font-size: .82rem; }
+  .league th { font-size: .62rem; letter-spacing: .05em; padding: 8px 3px; }
+  .league td { padding: 9px 3px; }
+  .league td:nth-child(1) { width: 1.6rem; }
+  .league td:nth-child(2) { padding-left: 6px; line-height: 1.3; }
+
+  /* "Małe pkt" is the least important column: hidden on phones to make room for the team name */
+  .league th:nth-child(7), .league td:nth-child(7) { display: none; }
+}
