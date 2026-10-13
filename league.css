@@ -1,0 +1,35 @@
+/* League tables: only what style.css (shared with mate-web) does not already cover. */
+
+/* karty z tabelami: mniej przezroczyste niż w style.css (było 60% krycia), tło słabiej prześwituje przez tekst */
+.job { background: rgba(22, 27, 24, .90); }
+
+.table-wrap { overflow-x: auto; margin-top: 18px; }
+
+.league { width: 100%; border-collapse: collapse; font-size: .94rem; }
+.league th {
+  font: 500 .78rem var(--head); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--gold); text-align: center; padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.league td {
+  padding: 11px 12px; text-align: center; white-space: nowrap;
+  border-bottom: 1px solid var(--line); color: var(--body);
+}
+.league th:nth-child(2), .league td:nth-child(2) { text-align: left; white-space: normal; }
+.league td:nth-child(1) { color: var(--muted); width: 3rem; }
+.league td.pts { color: var(--text); font-weight: 600; }
+.league tbody tr:last-child td { border-bottom: 0; }
+
+/* our team: emerald side mark + soft emerald fill, same language as the cards */
+.league tr.me td { background: var(--accent-soft); color: var(--text); font-weight: 500; }
+.league tr.me td:first-child { box-shadow: inset 3px 0 0 var(--accent); color: var(--gold); font-weight: 600; }
+
+.status { text-align: center; color: var(--muted); padding: 24px 0; }
+.status.error { color: #f0a3a3; }
+
+.updated { font-size: .82rem; color: var(--muted); margin-top: 18px; }
+
+@media (max-width: 820px) {
+  .league { font-size: .88rem; }
+  .league th, .league td { padding: 9px 8px; }
+}

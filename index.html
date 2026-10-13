@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JKS SMS Jastrzębie — tabele ligowe</title>
+  <meta name="description" content="Aktualne tabele ligowe JKS SMS Jastrzębie: Juniorki Młodsze i Juniorki. Dane na żywo z systemu SZPS.">
+  <meta name="theme-color" content="#0F1210">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Poppins:wght@300;400;500&family=Monoton&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="league.css">
+</head>
+<body>
+
+  <!-- Background: emerald triangle mesh that reacts gently to the pointer (see triangles3d.js) -->
+  <canvas id="tri" aria-hidden="true"></canvas>
+
+  <header class="top" id="top-bar">
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><span></span></button>
+    <nav id="site-nav" aria-label="Sekcje">
+      <a class="brand" href="#top" aria-label="JKS SMS Jastrzębie, na górę"><span class="brand-mate" aria-hidden="true">ZSMS&nbsp;&nbsp;&nbsp;JKS</span></a>
+      <a href="#juniorki-mlodsze">Juniorki Młodsze</a>
+      <a href="#juniorki">Juniorki</a>
+    </nav>
+  </header>
+
+  <main id="top">
+
+    <!-- JUNIORKI MŁODSZE -->
+    <section id="juniorki-mlodsze" class="section">
+      <header class="section-head">
+        <p class="label">Kategoria</p>
+        <h2>Juniorki Młodsze</h2>
+      </header>
+      <article class="job current" data-competition="Juniorki Młodsze" data-team="JKS SMS Jastrzębie">
+        <p class="status">Ładowanie danych…</p>
+      </article>
+    </section>
+
+    <!-- JUNIORKI -->
+    <section id="juniorki" class="section">
+      <header class="section-head">
+        <p class="label">Kategoria</p>
+        <h2>Juniorki</h2>
+      </header>
+      <article class="job current" data-competition="Juniorki" data-team="JKS SMS Jastrzębie II">
+        <p class="status">Ładowanie danych…</p>
+      </article>
+    </section>
+
+  </main>
+
+  <footer>
+    <span id="footer">Dane: system.szps.pl</span>
+  </footer>
+
+  <script>
+    // Mobile menu (same behaviour as mate-web)
+    (function () {
+      var bar = document.getElementById('top-bar');
+      var btn = bar.querySelector('.menu-toggle');
+      function set(open) {
+        bar.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      btn.addEventListener('click', function () { set(!bar.classList.contains('open')); });
+      bar.addEventListener('click', function (e) { if (e.target.closest('nav a')) set(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+      window.addEventListener('resize', function () { if (window.innerWidth > 820) set(false); });
+    })();
+  </script>
+
+  <script>
+    // Live data from the SZPS API; reused for CACHE_SECONDS in this browser (localStorage)
+    const API_URL = "https://system.szps.pl/webapi.php?standings&club=9";
+    const CACHE_SECONDS = 300;   // 5 minutes
+    const CACHE_KEY = "jks-sms-standings";
+
+    // localStorage can be blocked (private mode etc.): then we simply fetch every time
+    function readCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (cached && Date.now() - cached.time < CACHE_SECONDS * 1000) return cached;
+      } catch (e) {}
+      return null;
+    }
+
+    function writeCache(data, time) {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ time, data })); } catch (e) {}
+    }
+
+    async function getStandings() {
+      const cached = readCache();
+      if (cached) return cached;
+
+      const response = await fetch(API_URL);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const fresh = { time: Date.now(), data: await response.json() };
+      writeCache(fresh.data, fresh.time);
+      return fresh;
+    }
+
+    // The API leaves double / trailing spaces in team names
+    const clean = (name) => name.split(/\s+/).filter(Boolean).join(" ");
+
+    function findTable(data, competition, team) {
+      return data.tables.find(
+        (t) => t.competition === competition && t.club_teams.some((c) => clean(c.team) === team)
+      );
+    }
+
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;   // textContent: no HTML injection from API data
+      return node;
+    }
+
+    function renderTable(table, team) {
+      const frag = document.createDocumentFragment();
+
+      const header = el("header");
+      header.appendChild(el("h3", null, table.group_name));
+      header.appendChild(el("p", "meta", `${table.competition} · drużyn: ${table.total_teams}`));
+      frag.appendChild(header);
+
+      const wrap = el("div", "table-wrap");
+      const tbl = el("table", "league");
+      const thead = tbl.createTHead().insertRow();
+      for (const label of ["Poz", "Drużyna", "M", "W", "Pkt", "Sety", "Małe pkt"]) {
+        thead.appendChild(el("th", null, label));
+      }
+
+      const tbody = tbl.createTBody();
+      for (const t of table.full_standings) {
+        const name = clean(t.team);
+        const row = tbody.insertRow();
+        if (name === team) row.className = "me";
+        const cells = [
+          [t.position], [name], [t.matches_played], [t.wins], [t.points, "pts"],
+          [`${t.sets_won}:${t.sets_lost}`], [`${t.points_scored}:${t.points_conceded}`],
+        ];
+        for (const [value, cls] of cells) {
+          const td = row.insertCell();
+          td.textContent = value;
+          if (cls) td.className = cls;
+        }
+      }
+      wrap.appendChild(tbl);
+      frag.appendChild(wrap);
+      return frag;
+    }
+
+    function showStatus(card, message, isError) {
+      card.replaceChildren(el("p", "status" + (isError ? " error" : ""), message));
+    }
+
+    async function load() {
+      const cards = document.querySelectorAll("[data-competition]");
+      try {
+        const { data, time } = await getStandings();
+
+        for (const card of cards) {
+          const table = findTable(data, card.dataset.competition, card.dataset.team);
+          if (table) {
+            card.replaceChildren(renderTable(table, card.dataset.team));
+          } else {
+            showStatus(card, "Brak tabeli dla tej kategorii.", false);
+          }
+        }
+        document.getElementById("footer").textContent =
+          `Dane: system.szps.pl · pobrane ${new Date(time).toLocaleString("pl-PL")}`;
+      } catch (err) {
+        for (const card of cards) {
+          showStatus(card, `Nie udało się pobrać danych z API: ${err.message}`, true);
+        }
+      }
+    }
+
+    load();
+  </script>
+  <script src="triangles3d.js"></script>
+
+</body>
+</html>
