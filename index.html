@@ -189,12 +189,18 @@
     })();
 
     // Live data from the SZPS API.
-    // Cached in localStorage for CACHE_SECONDS. When the cache is older and the API fails (offline, outage),
-    // the last saved copy is shown and marked as stale instead of an error page.
+    // Two cache levels:
+    //   1. server: the Cloudflare function "api/..." keeps one shared copy for all visitors (10 min),
+    //   2. browser: localStorage for CACHE_SECONDS.
+    // Each data set has two URLs: our own endpoint first, then the SZPS API directly (used when our endpoint
+    // is down). Hosts that cannot have functions skip our endpoint entirely (no pointless 404 on every visit):
+    // GitHub Pages (*.github.io) and anything that is not served over http(s), e.g. a local file.
+    // When all URLs fail and an older saved copy exists, it is shown and marked as stale instead of an error.
     const CACHE_SECONDS = 600;    // 10 minutes
     const API_BASE = "https://system.szps.pl/webapi.php";
-    const STANDINGS_URL = API_BASE + "?standings&club=9";
-    const MATCHES_URL = API_BASE + "?matches&club=9";
+    const HAS_OWN_ENDPOINTS = /^https?:$/.test(location.protocol) && !/(^|\.)github\.io$/i.test(location.hostname);
+    const STANDINGS_URLS = (HAS_OWN_ENDPOINTS ? ["api/standings"] : []).concat(API_BASE + "?standings&club=9");
+    const MATCHES_URLS = (HAS_OWN_ENDPOINTS ? ["api/matches"] : []).concat(API_BASE + "?matches&club=9");
 
     // localStorage can be blocked (private mode etc.): then we simply fetch every time
     function readCache(key) {
@@ -210,33 +216,41 @@
     }
 
     // -> { time, data, stale }   stale = true when the API failed and an older saved copy is returned
-    async function cachedFetch(url, key, isValid) {
+    async function cachedFetch(urls, key, isValid) {
       const cached = readCache(key);
       const usable = cached && isValid(cached.data);
       if (usable && Date.now() - cached.time < CACHE_SECONDS * 1000) {
         return { time: cached.time, data: cached.data, stale: false };
       }
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        if (!isValid(data)) throw new Error("nieprawidłowa odpowiedź API");
-        const time = Date.now();
-        writeCache(key, data, time);
-        return { time, data, stale: false };
-      } catch (err) {
-        if (usable) return { time: cached.time, data: cached.data, stale: true };
-        throw err;
+      let lastError = null;
+      for (const url of urls) {                       // our endpoint first, then the SZPS API
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          if (!isValid(data)) throw new Error("nieprawidłowa odpowiedź API");
+          // our endpoint tells when its copy was made (X-Cached-At) and whether the API was down (X-Cache: STALE),
+          // so the "pobrane" time and the stale banner stay truthful; the direct API sends neither header
+          const cachedAt = Number(response.headers.get("X-Cached-At"));
+          const time = cachedAt > 0 && cachedAt <= Date.now() ? cachedAt : Date.now();
+          const serverStale = response.headers.get("X-Cache") === "STALE";
+          writeCache(key, data, time);
+          return { time, data, stale: serverStale };
+        } catch (err) {
+          lastError = err;
+        }
       }
+      if (usable) return { time: cached.time, data: cached.data, stale: true };
+      throw lastError;
     }
 
-    const getStandings = () => cachedFetch(STANDINGS_URL, "jks-sms-standings", (d) => Array.isArray(d.tables));
+    const getStandings = () => cachedFetch(STANDINGS_URLS, "jks-sms-standings", (d) => Array.isArray(d.tables));
 
     // Match results are fetched only when a team is expanded for the first time, then kept in memory
     let matchesPromise = null;
     function getMatches() {
       if (!matchesPromise) {
-        matchesPromise = cachedFetch(MATCHES_URL, "jks-sms-matches", (d) => Array.isArray(d.matches))
+        matchesPromise = cachedFetch(MATCHES_URLS, "jks-sms-matches", (d) => Array.isArray(d.matches))
           .catch((e) => { matchesPromise = null; throw e; });
       }
       return matchesPromise;
