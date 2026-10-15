@@ -1,17 +1,17 @@
 # Zadanie: strona z tabelami ligowymi i wynikami klubu siatkarskiego JKS SMS Jastrzębie
 
-Zbuduj jednostronicową, statyczną stronę (HTML + CSS + trochę czystego JavaScript, bez frameworków i bez
+Zbuduj jednostronicową, statyczną stronę (HTML + CSS + trochę czystego JavaScriptu, bez frameworków i bez
 kroku budowania), hostowaną na GitHub Pages. Strona pobiera dane na żywo z publicznego API systemu SZPS
-i pokazuje tabele ligowe oraz wyniki meczów wszystkich drużyn klubu. Interfejs po polsku, ciemny motyw
-w barwach klubowych (zieleń + złoto), działa dobrze na telefonie.
+i pokazuje tabele ligowe oraz wyniki meczów wszystkich drużyn klubu. Interfejs po polsku, w barwach
+klubowych (zieleń + złoto), dwa motywy (ciemny i jasny), działa dobrze na telefonie.
 
 ## 1. Pliki
 
 - `index.html` (markup + cały JavaScript w tagach `<script>`)
 - `style.css` (bazowy motyw, nagłówek, menu, typografia, hamburger na telefonie)
-- `league.css` (tabele, karty zwijane, lista meczów, tło, nadpisania)
-- `kleby.svg` (tło: miękki dym)
-- `jks.svg` (kontur napisu JKS)
+- `league.css` (tabele, karty zwijane, lista meczów, tło, motywy, nadpisania)
+- `kleby.svg`, `kleby-light.svg` (tło: miękki dym, ciemny i jasny)
+- `jks.svg`, `jks-light.svg` (kontur napisu JKS, złoty i zielony)
 
 Fonty z Google Fonts: Montserrat (500/600/700), Inter (400/500/600/700), Poppins (300/400/500/600),
 Monoton (400). Użyj `font-display: swap`.
@@ -70,27 +70,41 @@ Małe pkt (`zdobyte:stracone`). Na ekranach ≤560 px ukryj „Małe pkt”, tab
 bez przewijania w bok.
 
 ### Wiersze naszych drużyn i lista meczów
-- Wiersze drużyn klubu mają podświetlone tło (szmaragd 16%), zielony pasek z lewej i złoty numer
-  pozycji. Nazwa jest przyciskiem `<button>` (`aria-expanded`) ze strzałką. Klikalny jest
-  **cały wiersz** (kursor pointer, rozjaśnienie przy hover, złote podkreślenie nazwy). Przycisk
-  zostaje dla klawiatury i czytników ekranu, a klik w sam przycisk przełącza tylko raz.
-- Klik rozwija pod wierszem dodatkowy wiersz z listą meczów tej drużyny w tej grupie.
+- Wiersze drużyn klubu mają podświetlone tło (akcent 16%), pasek akcentu z lewej i numer pozycji
+  w kolorze złota (tekstowego). Nazwa jest przyciskiem `<button>` (`aria-expanded`) ze strzałką.
+  Klikalny jest **cały wiersz** (kursor pointer, rozjaśnienie przy hover, złote podkreślenie nazwy).
+  Przycisk zostaje dla klawiatury i czytników ekranu, a klik w sam przycisk przełącza tylko raz.
+- Klik rozwija pod wierszem dodatkowy wiersz z listą meczów tej drużyny w tej grupie. Nadaj mu własną
+  klasę (np. `matches-row`), **nie `detail`**: ta nazwa koliduje ze starą regułą szablonu
+  (półprzezroczyste ciemne tło) i w jasnym motywie dawała ciemny pas.
 - Dwie sekcje: **Wyniki** (najnowsze na górze) i **Najbliższe mecze** (rosnąco po dacie, bez terminu
   na końcu).
 - Pozycja meczu: data `dd.mm.rrrr`, gospodarz i gość (nasza drużyna pogrubiona, rywale w kolorze
   tekstu), po prawej znacznik **W** lub **P** (wygrana/przegrana, nie polegaj tylko na kolorze)
-  i wynik w setach, pod spodem małym drukiem punkty w setach. Lewy pasek zielony przy wygranej
-  i czerwonawy przy przegranej. Dla nierozegranych brak wyniku.
+  i wynik w setach, pod spodem małym drukiem punkty w setach. Lewy pasek w kolorze akcentu przy
+  wygranej i czerwonawy przy przegranej. Dla nierozegranych brak wyniku.
 - Na telefonie (≤560 px): data w osobnej linii, gospodarz nad gościem, wyniki setów w osobnej linii
   pod spodem, żeby nazwy miały pełną szerokość. Powyżej 560 px: „Gospodarz – Gość” w jednej linii.
 - Mecze pobieraj leniwie dopiero przy pierwszym rozwinięciu i trzymaj w pamięci strony (jedno
   zapytanie na sesję).
 
-### Menu i stopka
-- Sticky pasek u góry: logo tekstowe `ZSMS   JKS` w kroju Monoton z gradientem złoto → szmaragd
-  oraz linki do kategorii (generowane z danych). Pod linkami złote podkreślenie rośnie od lewej
-  przy hover, a przed linkiem jest mała zielona kropka. Poniżej 820 px menu zwija się do
-  hamburgera (przycisk z `aria-expanded`, zamyka się po wyborze linku i po Esc).
+### Menu, przełącznik motywu i stopka
+- Sticky pasek u góry: logo tekstowe `ZSMS   JKS` w kroju Monoton z gradientem (ciemny motyw:
+  złoto → szmaragd, jasny: ciemne złoto `#8A6200` → zieleń `#0B6B3A`) oraz linki do kategorii
+  (generowane z danych). Pod linkami złote podkreślenie rośnie od lewej przy hover, a przed linkiem
+  jest mała kropka w kolorze akcentu. Poniżej 820 px menu zwija się do hamburgera (przycisk
+  z `aria-expanded`, zamyka się po wyborze linku i po Esc).
+- **Przełącznik motywu**: okrągły przycisk 40 px z ikoną księżyca (motyw ciemny) lub słońca (jasny),
+  zawsze widoczny w pasku (po prawej na komputerze, obok hamburgera na telefonie). `aria-label`
+  zmienia się z motywem („Przełącz na motyw jasny/ciemny”).
+- **Skoki z menu do kategorii**: sekcja ma lądować dokładnie pod paskiem, tak żeby nie wystawał
+  dół poprzedniej karty. `scroll-padding-top` ma być równe zmierzonej wysokości paska
+  (zmienna `--bar-h`, mierzona skryptem po załadowaniu fontów, przy zmianie rozmiaru i po zamknięciu
+  menu; nie mierz, gdy menu na telefonie jest otwarte, bo pasek jest wtedy wyższy). Ostatnia sekcja
+  ma `min-height` równe wysokości ekranu minus pasek (`100svh − --bar-h`), inaczej przy zwiniętych
+  kartach strona jest za krótka i do ostatniej kategorii nie da się przewinąć. Sekcja wybrana
+  z menu (`:target`) na 1,6 s podświetla pierwszą kartę złotą ramką (wyłączone przy
+  `prefers-reduced-motion`).
 - Stopka: `Dane: system.szps.pl · pobrane <data i godzina>`.
 - Brak osobnego nagłówka „Kategoria” nad kartami: nazwa kategorii jest częścią tytułu każdej tabeli.
 - Przy braku danych/awarii bez kopii: komunikat „Nie udało się pobrać danych z API: …”.
@@ -106,12 +120,39 @@ bez przewijania w bok.
 - `localStorage` może być zablokowany (tryb prywatny). Opakuj odczyt i zapis w `try/catch`, a bez
   cache pobieraj za każdym razem.
 
-## 5. Wygląd
+## 5. Motywy (ciemny i jasny)
 
-### Kolory
-Tło `#0F1210`, panel/karta `#161B18` (karty z kryciem 90%), tekst `#ffffff`, tekst główny `#c9cbcf`,
-przygaszony `#8b8f96`, linie `#222B25`, akcent szmaragd `#10B981`, złoto `#E6B75A`, mięta `#6EE7B7`.
-Wygrana: szmaragd; przegrana: `#e0736a` (pasek) / `#f0a3a3` (tekst).
+### Który motyw jest wybierany
+Kolejność reguł, rozstrzygana małym skryptem w `<head>`, **zanim strona się narysuje** (bez błysku
+złego motywu):
+1. zapisany wybór odwiedzającego (`localStorage`, klucz `jks-theme`: `light` lub `dark`);
+2. na **telefonie** motyw z ustawień telefonu (`prefers-color-scheme`), także gdy zmieni się w trakcie
+   (nasłuch `change`), dopóki nie ma zapisanego wyboru;
+3. na komputerze i tablecie zawsze **ciemny**, niezależnie od ustawień systemu.
+
+Telefon = `matchMedia("(pointer: coarse)")` i `Math.min(screen.width, screen.height) < 600`.
+Wybrany motyw ustawia `data-theme="light|dark"` na `<html>`, `color-scheme` oraz meta `theme-color`
+(`#0F1210` / `#FFFDF5`). Wszystkie kolory strony biorą się ze zmiennych CSS (`:root` = ciemny,
+`:root[data-theme="light"]` = jasny), bez kolorów wpisanych na sztywno w regułach (jako zapas
+dopuszczalna wartość ciemna we `var()`).
+
+### Paleta ciemna
+Tło `#0F1210`, karta `#161B18` (krycie 90%), kafel meczu `#1B211D`, tekst `#ffffff`, tekst główny
+`#c9cbcf`, przygaszony `#8b8f96`, opis `#b5b8be`, linie `#222B25`, akcent szmaragd `#10B981`,
+złoto `#E6B75A` (także tekstowe), mięta `#6EE7B7`. Przegrana: pasek `#e0736a`, tekst `#f0a3a3`.
+
+### Paleta jasna
+Tło `#FFFDF5`, karta biała (krycie 92%), kafel meczu `#F1F5EA`, tekst `#14261C`, tekst główny
+`#2E4237`, przygaszony `#5F7266`, opis `#4F6258`, linie `#DCE3D3`, akcent zieleń `#0B6B3A`,
+złoto dekoracyjne `#E0A800`, **złoto tekstowe `#7A5A00`** (jasne złoto na bieli ma kontrast ok. 2:1,
+więc nigdy nie używaj go na tekst), pasek górny `rgba(255,253,245,.92)`. Przegrana: pasek `#C94A3F`,
+tekst `#B3362B`. Zaznaczenie tekstu: złote tło, ciemny tekst.
+
+### Przełączanie
+Klik w przełącznik zmienia motyw, zapisuje wybór w `localStorage` (w `try/catch`) i od tego momentu
+wybór wygrywa ze wszystkim. Zmiana kolorów może mieć krótkie przejście (ok. 0,15 s).
+
+## 6. Wygląd
 
 ### Typografia
 - Montserrat 700: tytuły kart, h3.
@@ -124,32 +165,41 @@ Wygrana: szmaragd; przegrana: `#e0736a` (pasek) / `#f0a3a3` (tekst).
 
 ### Tło (statyczne, bez animacji)
 Jedna warstwa `position: fixed` o wysokości `100lvh` (nie `background-attachment: fixed`, bo na
-telefonach skacze przy chowaniu paska adresu), `translateZ(0)`, za całą treścią:
-1. obraz `kleby.svg`: około 20 rozmytych obłoków dymu (szmaragd, mięta, kilka złotych) na ciemnym
-   tle, rysowanych kołami z filtrami SVG (`feTurbulence` + `feDisplacementMap` + `feGaussianBlur`),
-   `background-size: cover`;
-2. `jks.svg`: napis **JKS** krojem Monoton, **sam obrys**, złoty, grubość 1 px
-   (`vector-effect: non-scaling-stroke`), płasko (bez perspektywy), biegnący po przekątnej od lewego
-   dolnego do prawego górnego rogu ekranu (obrót o `atan2(-100vh, 100vw)`, długość ≈ 74% przekątnej,
-   zapas `-32deg` dla przeglądarek bez funkcji trygonometrycznych), krycie ≈ 35%.
-   Kontury wygeneruj z pliku fontu Monoton jako ścieżki SVG.
+telefonach skacze przy chowaniu paska adresu, a iOS Safari go ignoruje), `translateZ(0)`, za całą
+treścią. Zawiera dwie rzeczy:
+1. **Dym** (`kleby.svg` / `kleby-light.svg`, `background-size: cover`): 20 rozmytych obłoków
+   rysowanych kołami z filtrami SVG (`feTurbulence` + `feDisplacementMap` + `feGaussianBlur`),
+   wyraziste, nie pastelowe:
+   - ciemny: kolory `#12C98C`, `#4FF0B5`, `#F2C25C`, krycie 0,28–0,62, rozmycie 17, poświata
+     szmaragdowa pośrodku i ciepła złota w prawym górnym rogu;
+   - jasny: kremowe tło `#FFFDF5`, kolory `#0A9460`, `#2CC98E`, `#E0A100`, krycie do 0,66,
+     rozmycie 15, zielona poświata i złota w prawym górnym rogu.
+2. **Napis JKS** (`jks.svg` ciemny złoty `#E6B75A`, `jks-light.svg` zielony `#0B6B3A`): krojem
+   Monoton, **sam obrys**, grubość 1 px (`vector-effect: non-scaling-stroke`), płasko (bez
+   perspektywy), biegnący po przekątnej od lewego dolnego do prawego górnego rogu ekranu (obrót
+   o `atan2(-100vh, 100vw)`, długość ≈ 74% przekątnej, zapas `-32deg` dla przeglądarek bez funkcji
+   trygonometrycznych), krycie 50%. Kontury wygeneruj z pliku fontu Monoton jako ścieżki SVG
+   (obraz jako `<div>` z `background-image: var(--jks)`, żeby kolor szedł za motywem).
 
 ### Detale
-- Karty: lewy zielony pasek 3–4 px, `border-bottom` 1 px, odstęp między kartami 14 px.
+- Karty: lewy pasek akcentu 3–4 px, `border-bottom` 1 px, odstęp między kartami 14 px, pierwsza
+  karta 32 px pod paskiem.
 - Przyciski i linki: wyraźny `:focus-visible` (kontur w kolorze akcentu).
-- `prefers-reduced-motion`: wyłącz przejścia.
+- `prefers-reduced-motion`: wyłącz przejścia i animację podświetlenia celu.
 
-## 6. Dostępność i jakość
+## 7. Dostępność i jakość
 
 - Semantyczny HTML (`header`, `nav`, `main`, `section`, `footer`, `details/summary`, `table`).
-- Kontrast tekstu ≥ 4,5:1, cele dotykowe nazw drużyn ≥ 44 px na urządzeniach dotykowych (ujemny
-  margines, żeby wiersze nie rosły).
+- Kontrast tekstu ≥ 4,5:1 w obu motywach, cele dotykowe nazw drużyn ≥ 44 px na urządzeniach
+  dotykowych (ujemny margines, żeby wiersze nie rosły).
 - Brak przewijania poziomego od 360 px szerokości.
 - Brak zależności zewnętrznych poza fontami i API; pliki w katalogu głównym, względne ścieżki.
 - Dodaj `meta description` obejmujący wszystkie kategorie (seniorki, juniorki, juniorki młodsze,
-  młodziczki) oraz `theme-color: #0F1210`.
+  młodziczki) oraz `theme-color` zgodny z motywem.
+- Podnoś numer wersji w linkach do CSS (`style.css?v=N`) przy każdej zmianie, bo GitHub Pages
+  i przeglądarki mobilne trzymają stare pliki.
 
-## 7. Kryteria akceptacji
+## 8. Kryteria akceptacji
 
 1. Po wejściu widać 6 zwiniętych kart (przy aktualnych danych: Seniorki – Grupa 1; Juniorki – 1 Liga,
    2 Liga A, 2 Liga B; Juniorki Młodsze – Grupa 1 – I Liga; Młodziczki – Grupa 6), każda z miejscem
@@ -160,4 +210,8 @@ telefonach skacze przy chowaniu paska adresu), `translateZ(0)`, za całą treśc
    cache widać dane z komunikatem.
 4. Na telefonie 375 px: bez przewijania w bok, tło nie przesuwa się przy przewijaniu, tabele i
    listy meczów czytelne.
-5. Cała strona działa z lokalnego serwera plików lub GitHub Pages bez budowania.
+5. Motyw: na komputerze strona startuje ciemna nawet przy jasnym systemie; na telefonie z jasnym
+   trybem startuje jasna; przełącznik zmienia motyw i wybór zostaje po odświeżeniu.
+6. Każdy link menu (w tym ostatni, Młodziczki) ustawia sekcję tuż pod paskiem, na telefonie,
+   tablecie i komputerze, ze zwiniętymi i rozwiniętymi kartami, bez widocznego dołu poprzedniej karty.
+7. Cała strona działa z lokalnego serwera plików lub GitHub Pages bez budowania.
