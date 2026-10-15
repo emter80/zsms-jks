@@ -181,7 +181,10 @@ details.fold > summary h3::after {
 details.fold > summary:hover h3::after,
 details.fold > summary:focus-visible h3::after,
 details.fold[open] > summary h3::after { transform: scaleX(1); }
-.sum-ours { margin-top: 6px; font-size: .88rem; color: var(--gold-ink, var(--gold)); }
+.sum-ours { margin-top: 6px; font-size: .88rem; color: var(--gold-ink, var(--gold)); list-style: none; padding: 0; }
+/* the global li rules (bullet dot, left padding, bottom margin) are for text lists; here it is a plain stack of lines */
+.sum-ours li { padding: 0; margin: 0 0 2px; font-size: inherit; line-height: 1.5; }
+.sum-ours li::before { content: none; }
 details.fold[open] > summary { margin-bottom: 4px; }
 @media (prefers-reduced-motion: reduce) {
   details.fold > summary::after, details.fold > summary h3::after { transition: none; }

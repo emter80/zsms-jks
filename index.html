@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=4">
-  <link rel="stylesheet" href="league.css?v=38">
+  <link rel="stylesheet" href="league.css?v=39">
 </head>
 <body>
 
@@ -401,9 +401,14 @@
       const header = el("header");
       header.appendChild(el("h3", null, `${categoryTitle} – ${groupTitle(table.group_name)}`));
       header.appendChild(el("p", "meta", `${table.competition} · drużyn: ${table.total_teams}`));
-      const ours = table.club_teams
-        .map((c) => `${clean(c.team)}: ${c.position}. miejsce, ${c.points} pkt`).join(" · ");
-      if (ours) header.appendChild(el("p", "sum-ours", ours));
+      // our teams, one per line (best position first): several teams joined in one line wrap badly on phones
+      if (table.club_teams.length) {
+        const ours = el("ul", "sum-ours");
+        [...table.club_teams].sort((a, b) => a.position - b.position).forEach((c) => {
+          ours.appendChild(el("li", null, `${clean(c.team)}: ${c.position}. miejsce, ${c.points} pkt`));
+        });
+        header.appendChild(ours);
+      }
       summary.appendChild(header);
       frag.appendChild(summary);
 
