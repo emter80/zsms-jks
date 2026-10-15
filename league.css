@@ -109,12 +109,13 @@
 
 /* ---------- static smoke background (variant 60): scattered soft puffs, emerald + gold ---------- */
 body {
-  background: #0F1210 url("kleby.svg") center / cover no-repeat fixed;
+  background: #0F1210;
+  background-attachment: scroll;
 }
 
 /* ---------- JKS outline: thin line, flat (no perspective), along the diagonal from bottom-left to top-right ---------- */
 .bg-j {
-  position: fixed; z-index: 0; pointer-events: none; user-select: none;
+  position: absolute; pointer-events: none; user-select: none;
   left: 50%; top: 50%;
   width: 80vw; aspect-ratio: 377.5 / 175.8; height: auto;
   transform: translate(-50%, -50%) rotate(-32deg);       /* fallback for browsers without CSS trig */
@@ -227,3 +228,14 @@ main > .section > .job { margin-bottom: 0; }
 .league tr.me.club-row:hover td { background: rgba(16, 185, 129, .26); }
 .league tr.club-row:hover .team-btn { color: var(--text); }
 .league tr.club-row:hover .team-btn::after { transform: scaleX(1); }     /* same gold underline as the button hover */
+
+/* ---------- background layer ----------
+   One fixed layer holds the smoke picture and the JKS outline. It is sized with the LARGEST viewport (lvh),
+   so when a phone's address bar hides/shows while scrolling the background does not resize or jump.
+   (background-attachment: fixed on body does exactly that on phones, and is ignored by iOS Safari.) */
+.bg-fixed {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh;
+  z-index: 0; overflow: hidden; pointer-events: none;
+  background: url("kleby.svg") center / cover no-repeat;
+  transform: translateZ(0);            /* own compositor layer: scrolling never repaints it */
+}
