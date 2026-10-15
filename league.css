@@ -384,3 +384,7 @@ details.fold > summary:active { opacity: .75; }
   --jks: url("jks.svg"); --jks-opacity: .35;   /* gold outline on the dark bar, as in the dark theme */
 }
 :root[data-theme="light"] .top .brand-mate { --c1: #E6B75A; --c2: #10B981; }
+
+/* set scores: won sets green, lost sets red (same colours as the W / P tags) */
+.m-score .set-w { color: var(--accent); }
+.m-score .set-l { color: var(--loss-text, #f0a3a3); }

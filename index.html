@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=6">
-  <link rel="stylesheet" href="league.css?v=47">
+  <link rel="stylesheet" href="league.css?v=48">
 </head>
 <body>
 
@@ -330,7 +330,17 @@
         top.appendChild(tag);
         top.appendChild(el("b", null, `${score.home}:${score.visitor}`));
         res.appendChild(top);
-        if (score.parts.length) res.appendChild(el("small", null, score.parts.join(", ")));
+        if (score.parts.length) {
+          // every set coloured from our side: won green, lost red ("25:16" is home:visitor)
+          const sets = el("small");
+          score.parts.forEach((p, i) => {
+            const [ph, pv] = p.split(":").map(Number);
+            const ours = mine === "home" ? ph : pv, theirs = mine === "home" ? pv : ph;
+            if (i) sets.append(", ");
+            sets.appendChild(el("span", ours > theirs ? "set-w" : ours < theirs ? "set-l" : null, p));
+          });
+          res.appendChild(sets);
+        }
       }
       item.appendChild(res);
       return item;
