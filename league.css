@@ -362,16 +362,19 @@ details.fold > summary:active { opacity: .75; }
 /* bye round: "pauzuje" instead of a rival name */
 .m-teams span.bye { font-style: italic; color: var(--muted); }
 
-/* ---------- light theme: the top bar stays dark, with a slice of the dark theme's smoke behind it ----------
+/* ---------- top bar (both themes): dark, with a slice of the dark theme's smoke behind it, gold line under it ---------- */
+.top {
+  --topbar-bg: rgba(15, 18, 16, .94);
+  background: url("kleby.svg") center 35% / 100vw auto no-repeat, var(--topbar-bg);
+  border-bottom-color: #E0A800;
+}
+/* ---------- light theme: the top bar is dark too ----------
    Inside the bar the colour variables switch back to the dark theme, so the logo, links,
    the hamburger, the theme button and the phone drop-down menu all read on the dark ground. */
 :root[data-theme="light"] .top {
   --text: #ffffff; --body: #c9cbcf; --muted: #b5b9bf;
   --line: #2A342E; --hairline: rgba(255, 255, 255, .08);
   --accent: #10B981; --gold: #E6B75A;
-  --topbar-bg: rgba(15, 18, 16, .94);
   --logo-shadow: drop-shadow(2px 3px 1px #000);
-  background: url("kleby.svg") center 35% / 100vw auto no-repeat, var(--topbar-bg);
-  border-bottom-color: #E0A800;
 }
 :root[data-theme="light"] .top .brand-mate { --c1: #E6B75A; --c2: #10B981; }
