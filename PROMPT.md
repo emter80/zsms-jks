@@ -100,10 +100,16 @@ bez przewijania w bok.
 - **Skoki z menu do kategorii**: sekcja ma lądować dokładnie pod paskiem, tak żeby nie wystawał
   dół poprzedniej karty. `scroll-padding-top` ma być równe zmierzonej wysokości paska
   (zmienna `--bar-h`, mierzona skryptem po załadowaniu fontów, przy zmianie rozmiaru i po zamknięciu
-  menu; nie mierz, gdy menu na telefonie jest otwarte, bo pasek jest wtedy wyższy). Ostatnia sekcja
-  ma `min-height` równe wysokości ekranu minus pasek (`100svh − --bar-h`), inaczej przy zwiniętych
-  kartach strona jest za krótka i do ostatniej kategorii nie da się przewinąć. Sekcja wybrana
-  z menu (`:target`) na 1,6 s podświetla pierwszą kartę złotą ramką (wyłączone przy
+  menu; nie mierz, gdy menu na telefonie jest otwarte, bo pasek jest wtedy wyższy).
+  **Przy zwiniętych kartach strona jest krótka**, więc sekcji bliskich końca (zwłaszcza ostatniej)
+  nie da się przewinąć pod pasek. Nie rozwiązuj tego stałą `min-height` ostatniej sekcji, bo to daje
+  stałą pustą przestrzeń między ostatnią kartą a stopką. Zamiast tego, **w momencie kliknięcia linku**
+  menu, skrypt wylicza brakującą wysokość (`pozycja celu − wysokość paska + wysokość ekranu − wysokość
+  strony`) i dodaje dokładnie tyle przestrzeni po ostatniej sekcji (`main::after`, zmienna `--room`),
+  zanim przeglądarka wykona skok. Przestrzeń znika sama, gdy bieżąca pozycja przewijania jest
+  osiągalna także bez niej (kontrola przy przewijaniu, przy zmianie rozmiaru i co 400 ms jako
+  zabezpieczenie). W spoczynku odstęp ostatnia karta → stopka ma być naturalny (ok. 90 px).
+  Sekcja wybrana z menu (`:target`) na 1,6 s podświetla pierwszą kartę złotą ramką (wyłączone przy
   `prefers-reduced-motion`).
 - Stopka: `Dane: system.szps.pl · pobrane <data i godzina>`.
 - Brak osobnego nagłówka „Kategoria” nad kartami: nazwa kategorii jest częścią tytułu każdej tabeli.

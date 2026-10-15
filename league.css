@@ -320,12 +320,12 @@ main > .section > .job { margin-bottom: 0; }
 @media (prefers-reduced-motion: reduce) { .theme-toggle { transition: none; } }
 
 /* ---------- menu anchor links ----------
-   With collapsed cards the page is short, so the LAST category could never be scrolled up to the top
-   (the browser stops at the bottom of the page) and the "Młodziczki" link seemed to do nothing.
-   The last section is therefore at least as tall as the screen under the top bar. */
-main > .section:last-of-type {
-  min-height: calc(100vh - var(--bar-h, 64px));
-  min-height: calc(100svh - var(--bar-h, 64px));
+   With collapsed cards the page is short, so a section near the end could not be scrolled up under the bar
+   (the browser stops at the bottom of the page) and links like "Młodziczki" seemed to do nothing.
+   The menu script measures how much room is missing and sets --room; the spacer exists only while it is needed
+   (html.has-room), so there is no permanent empty gap between the last card and the footer. */
+html.has-room main::after {
+  content: ""; display: block; height: var(--room, 0px);
 }
 /* anchor jumps stop exactly under the sticky bar (value measured by the script, see index.html) */
 html { scroll-padding-top: var(--bar-h, 64px); }
