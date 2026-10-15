@@ -369,6 +369,10 @@ details.fold > summary:active { opacity: .75; }
   border-bottom-color: #E0A800;
 }
 .top nav a:not(.brand) { color: #E4E6EA; }   /* menu links: light grey on the dark bar (hover: white) */
+/* JKS outline on the bar: the bar is sticky at the very top, so a copy of the outline placed at the screen centre
+   lines up with the fixed background one (the tip of the S runs onto the bar); it sits under the bar's content (z-index -1 in the bar's stacking context) */
+.bar-j { position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
+.bar-j > .bg-j { top: 50vh; top: 50lvh; }   /* centre of the screen, like the fixed layer (100lvh tall) */
 /* ---------- light theme: the top bar is dark too ----------
    Inside the bar the colour variables switch back to the dark theme, so the logo, links,
    the hamburger, the theme button and the phone drop-down menu all read on the dark ground. */
@@ -377,5 +381,6 @@ details.fold > summary:active { opacity: .75; }
   --line: #2A342E; --hairline: rgba(255, 255, 255, .08);
   --accent: #10B981; --gold: #E6B75A;
   --logo-shadow: drop-shadow(2px 3px 1px #000);
+  --jks: url("jks.svg"); --jks-opacity: .35;   /* gold outline on the dark bar, as in the dark theme */
 }
 :root[data-theme="light"] .top .brand-mate { --c1: #E6B75A; --c2: #10B981; }
