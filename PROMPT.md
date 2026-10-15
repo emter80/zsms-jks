@@ -111,8 +111,12 @@ bez przewijania w bok.
   daleko od celu, a zdjęcie przestrzeni skróciłoby animację (trzeba by kliknąć link drugi raz).
   Skok trwa od kliknięcia do dotarcia na zaplanowaną pozycję (±2 px), albo do 400 ms ciszy po
   ostatnim zdarzeniu przewijania, albo 700 ms bez żadnego przewijania. Dopiero potem przestrzeń
-  znika sama, gdy bieżąca pozycja jest osiągalna także bez niej (kontrola przy przewijaniu, przy
-  zmianie rozmiaru i co 400 ms jako zabezpieczenie). W spoczynku odstęp ostatnia karta → stopka ma
+  może zniknąć, ale **tylko gdy odwiedzający wróci na pozycję, która istniała bez niej już w chwili
+  kliknięcia** (`roomSafeY` = największe przewinięcie strony bez przestrzeni, zapamiętane przy
+  kliknięciu; kontrola przy przewijaniu, przy zmianie rozmiaru i co 400 ms jako zabezpieczenie).
+  Nie wolno oddawać przestrzeni na podstawie bieżącej wysokości strony: rozwinięcie karty czyni
+  stronę wyższą, przestrzeń by zniknęła, a zwinięcie karty ściągnęłoby widok w górę (przesunięcie
+  o setki pikseli). Rozwijanie i zwijanie kart w sekcji, do której skoczono, ma zostawiać ją pod paskiem. W spoczynku odstęp ostatnia karta → stopka ma
   być naturalny (ok. 90 px). Testuj to przy **płynnym**, a nie natychmiastowym przewijaniu.
   Sekcja wybrana z menu (`:target`) na 1,6 s podświetla pierwszą kartę złotą ramką (wyłączone przy
   `prefers-reduced-motion`).
