@@ -12,6 +12,10 @@ klubowych (zieleń + złoto), dwa motywy (ciemny i jasny), działa dobrze na tel
 - `league.css` (tabele, karty zwijane, lista meczów, tło, motywy, nadpisania)
 - `kleby.svg`, `kleby-light.svg` (tło: miękki dym, ciemny i jasny)
 - `jks.svg`, `jks-light.svg` (kontur napisu JKS, złoty i zielony)
+- `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`: ikona karty. Litera **J** krojem Monoton
+  (jak w logo „ZSMS JKS”), zielona (`#10B981`) na ciemnym (`#0F1210`) zaokrąglonym kwadracie.
+  Litera musi być zapisana jako ścieżki (SVG nie ładuje webfontów), wygenerowana z pliku fontu.
+  Linki w `<head>`: `favicon.ico` (32×32), `favicon.svg`, `apple-touch-icon.png` (180×180).
 
 Fonty z Google Fonts: Montserrat (500/600/700), Inter (400/500/600/700), Poppins (300/400/500/600),
 Monoton (400). Użyj `font-display: swap`.

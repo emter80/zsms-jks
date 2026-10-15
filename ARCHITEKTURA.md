@@ -206,6 +206,7 @@ pobrała dane z SZPS. Może więc być starsza niż chwila otwarcia strony (nawe
 | `style.css`, `league.css` | style bazowe oraz tabele, karty, lista meczów, tło, motywy |
 | `kleby.svg`, `kleby-light.svg` | tło: miękki dym (ciemny i jasny motyw) |
 | `jks.svg`, `jks-light.svg` | obrys napisu JKS (złoty i zielony) |
+| `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` | ikona karty: litera J krojem Monoton (jako ścieżki), zielona na ciemnym tle; SVG, ICO 32 px i PNG 180 px |
 | `functions/api/[name].js` | Cloudflare Pages Function: cache po stronie serwera (`/api/standings`, `/api/matches`) |
 | `PROMPT.md` | pełny opis strony do odtworzenia przez AI |
 | `ARCHITEKTURA.md` | ten dokument |
