@@ -365,7 +365,7 @@ details.fold > summary:active { opacity: .75; }
 /* ---------- top bar (both themes): dark, with a slice of the dark theme's smoke behind it, gold line under it ---------- */
 .top {
   --topbar-bg: rgba(15, 18, 16, .94);
-  background: url("kleby.svg") center 35% / 100vw auto no-repeat, var(--topbar-bg);
+  background: url("kleby.svg") center 35% / cover no-repeat, var(--topbar-bg);   /* cover: also fills the tall open phone menu */
   border-bottom-color: #E0A800;
 }
 .top nav a:not(.brand) { color: #E4E6EA; }   /* menu links: light grey on the dark bar (hover: white) */
