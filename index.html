@@ -6,21 +6,44 @@
   <title>JKS SMS Jastrzębie — tabele ligowe i wyniki</title>
   <meta name="description" content="Tabele ligowe i wyniki meczów wszystkich drużyn JKS SMS Jastrzębie: seniorki, juniorki, juniorki młodsze i młodziczki. Dane na żywo z systemu SZPS.">
   <meta name="theme-color" content="#0F1210">
+  <script>
+    // choose the theme before the page paints:
+    //   1. the visitor's saved choice, otherwise
+    //   2. on a phone: the phone's setting, otherwise
+    //   3. (computer) dark
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("jks-theme"); } catch (e) {}
+      // phone = touch screen with a small physical screen (tablets and desktops keep the dark default)
+      var phone = matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600;
+      window.__jksPhone = phone;
+      if (t !== "light" && t !== "dark") {
+        t = phone && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      }
+      document.documentElement.dataset.theme = t;
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.content = t === "light" ? "#FFFDF5" : "#0F1210";
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&family=Monoton&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=3">
-  <link rel="stylesheet" href="league.css?v=30">
+  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="league.css?v=31">
 </head>
 <body>
 
   <!-- JKS in thin outline (Monoton, same face as the ZSMS JKS logo) running from the bottom-left to the top-right corner -->
   <div class="bg-fixed" aria-hidden="true">
-    <img class="bg-j" src="jks.svg" alt="">
+    <div class="bg-j"></div>
   </div>
 
   <header class="top" id="top-bar">
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><span></span></button>
+    <button class="theme-toggle" type="button" aria-label="Przełącz motyw" title="Przełącz motyw jasny / ciemny">
+      <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3 17 7M7 17l-1.7 1.7"/></g></svg>
+    </button>
     <nav id="site-nav" aria-label="Sekcje">
       <a class="brand" href="#top" aria-label="JKS SMS Jastrzębie, na górę"><span class="brand-mate" aria-hidden="true">ZSMS&nbsp;&nbsp;&nbsp;JKS</span></a>
       <!-- category links are added by the script from the API data -->
@@ -52,6 +75,33 @@
   </script>
 
   <script>
+    // Theme toggle: saves the choice. Without a saved choice a phone follows the phone's setting
+    // (also when it changes at sunset), a computer stays dark.
+    (function () {
+      var root = document.documentElement;
+      var btn = document.querySelector(".theme-toggle");
+      var meta = document.querySelector('meta[name="theme-color"]');
+      function apply(t) {
+        root.dataset.theme = t;
+        if (meta) meta.content = t === "light" ? "#FFFDF5" : "#0F1210";
+        btn.setAttribute("aria-label", t === "light" ? "Przełącz na motyw ciemny" : "Przełącz na motyw jasny");
+      }
+      apply(root.dataset.theme || "dark");
+      btn.addEventListener("click", function () {
+        var next = root.dataset.theme === "light" ? "dark" : "light";
+        apply(next);
+        try { localStorage.setItem("jks-theme", next); } catch (e) {}
+      });
+      var mq = matchMedia("(prefers-color-scheme: light)");
+      var follow = function (e) {
+        if (!window.__jksPhone) return;               // computers do not follow the system setting
+        var saved = null;
+        try { saved = localStorage.getItem("jks-theme"); } catch (err) {}
+        if (!saved) apply(e.matches ? "light" : "dark");
+      };
+      if (mq.addEventListener) mq.addEventListener("change", follow);
+    })();
+
     // Live data from the SZPS API.
     // Cached in localStorage for CACHE_SECONDS. When the cache is older and the API fails (offline, outage),
     // the last saved copy is shown and marked as stale instead of an error page.
@@ -210,7 +260,7 @@
         if (!open || detail) return;
 
         detail = row.parentNode.insertRow(row.rowIndex);   // directly after the team row (thead is row 0)
-        detail.className = "detail";
+        detail.className = "matches-row";   // not "detail": that name is styled by the old template
         const td = detail.insertCell();
         td.colSpan = row.cells.length;
         const box = el("div", "matches-box");

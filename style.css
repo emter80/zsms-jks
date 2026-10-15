@@ -1,4 +1,4 @@
-﻿/* Modern dark theme: near-black, charcoal panels, emerald main colour with gold signals, bold geometric headings. */
+/* Modern dark theme: near-black, charcoal panels, emerald main colour with gold signals, bold geometric headings. */
 :root {
   --bg: #0F1210;
   --panel: #161B18;
@@ -31,7 +31,7 @@ a:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-
   position: sticky; top: 0; z-index: 10;
   display: flex; justify-content: space-between; align-items: center; gap: 24px;
   padding: 16px max(20px, 5vw);
-  background: rgba(15, 18, 16, .88);
+  background: var(--topbar-bg, rgba(15, 18, 16, .88));
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
   font-size: .9rem;
@@ -103,7 +103,7 @@ h2 { font: 700 clamp(2rem, 4.4vw, 3rem)/1.15 var(--head); color: var(--text); ma
 
 /* ---------- experience / panels ---------- */
 .jobs { display: grid; gap: 22px; }
-.job { background: var(--panel); padding: 30px 32px; border-left: 3px solid #333; }
+.job { background: var(--panel); padding: 30px 32px; border-left: 3px solid var(--card-edge, #333); }
 .job.current { border-left-color: var(--accent); }
 .job header h3 { font: 700 1.25rem/1.35 var(--head); color: var(--text); }
 .role { font: 500 .98rem var(--sans); color: var(--text); margin-top: 4px; }
@@ -146,27 +146,27 @@ footer { margin-top: 90px; padding: 28px 24px 48px; text-align: center; border-t
 .btn:hover { background: #34D399; border-color: #34D399; }
 .btn.ghost { background: transparent; border-color: #323D36; }
 .btn.ghost:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
-.job { border-left-color: #2A342E; }
+.job { border-left-color: var(--card-edge, #2A342E); }
 .job.current { border-left-color: var(--accent); }
 :root { --gold: #E6B75A; }
 ::selection { background: var(--gold); color: #0F1210; }
 .btn, .btn:hover { color: #06140E; }               /* dark text: white on emerald is only 2.5:1 */
 .btn.ghost, .btn.ghost:hover { color: var(--text); }
 .btn.ghost:hover { color: var(--accent); }
-.eyebrow { color: var(--gold); }
+.eyebrow { color: var(--gold-ink, var(--gold)); }
 .eyebrow::before {
   content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 10px; border-radius: 50%;
   background: var(--gold); box-shadow: 0 0 0 4px rgba(230, 183, 90, .15); vertical-align: 1px;
 }
-.kicker { color: var(--gold); }
-.headline { color: var(--gold); font-weight: 400; }
+.kicker { color: var(--gold-ink, var(--gold)); }
+.headline { color: var(--gold-ink, var(--gold)); font-weight: 400; }
 /* role on its own line, tools below: items never break inside and a line never starts with the "·" separator */
 .headline .h-role { display: block; }
 .headline .h-stack { display: block; margin-top: 4px; text-wrap: balance; }
 .headline .h-stack span { white-space: nowrap; }
 .headline .h-stack span:not(:last-child)::after { content: " ·"; }
-.ring { border-color: var(--gold); }
-.panel:hover { border-top-color: var(--gold); }
+.ring { border-color: var(--gold-ink, var(--gold)); }
+.panel:hover { border-top-color: var(--gold-ink, var(--gold)); }
 
 /* ---------- section cards: 70% transparent background, mesh shows through ---------- */
 .job, .panel, .detail {
@@ -181,7 +181,7 @@ footer { margin-top: 90px; padding: 28px 24px 48px; text-align: center; border-t
   -webkit-backdrop-filter: blur(4px);
           backdrop-filter: blur(4px);
   padding: 28px 22px 28px 24px;
-  border-left: 3px solid #2A342E;
+  border-left: 3px solid var(--card-edge, #2A342E);
 }
 @media (max-width: 820px) { .bio-text { padding: 24px 22px; } }
 .bio-text .detail { padding: 14px 14px 14px 16px; }
@@ -204,8 +204,8 @@ h1 {
   display: block; width: fit-content; margin-left: auto; margin-right: auto;   /* shrink the box to the text so the gradient spans the name only */
   font-family: "Monoton", var(--head);                 /* neon line-style display face; Monoton ships a single weight (400) */
   font-weight: 400; letter-spacing: .04em;
-  color: var(--gold);                                  /* fallback if background-clip is unsupported */
-  background: linear-gradient(90deg, var(--gold), var(--accent));
+  color: var(--gold-ink, var(--gold));                                  /* fallback if background-clip is unsupported */
+  background: var(--logo-grad, linear-gradient(90deg, var(--gold), var(--accent)));
   -webkit-background-clip: text;
           background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -222,7 +222,7 @@ h1 {
 .hero h1 { margin-top: 0; }
 
 /* ---------- small section labels (BIOGRAPHY, CAREER, ...) in gold ---------- */
-.label { color: var(--gold); }
+.label { color: var(--gold-ink, var(--gold)); }
 
 /* ---------- descriptive paragraphs (.muted): much lighter grey than the original (#8B8F96) ---------- */
 .muted, .bio-text .muted { color: #D9DCE1; }
@@ -247,7 +247,7 @@ h1 {
 }
 
 /* ---------- earlier roles: collapsible <details> blocks (no JavaScript) ---------- */
-.earlier { margin: 8px 0 -6px; font: 500 .8rem var(--head); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+.earlier { margin: 8px 0 -6px; font: 500 .8rem var(--head); letter-spacing: .12em; text-transform: uppercase; color: var(--gold-ink, var(--gold)); }
 .earlier span { color: var(--muted); text-transform: none; letter-spacing: 0; font: 300 .82rem var(--sans); }
 
 .job.fold { padding: 0; }
@@ -265,7 +265,7 @@ h1 {
   transform: translateY(-70%) rotate(45deg); transition: transform .2s;
 }
 .job.fold[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
-.job.fold summary:hover h3 { color: var(--gold); }
+.job.fold summary:hover h3 { color: var(--gold-ink, var(--gold)); }
 .job.fold summary:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
 .job.fold[open] { border-left-color: var(--accent); }
 .job.fold > ul { margin: 0; padding: 0 24px 22px 44px; }
@@ -290,7 +290,7 @@ h1 {
   .top nav { justify-content: flex-start; gap: 22px; }
   .top nav a.brand {                       /* logo first and pinned while the links scroll */
     order: -1; position: sticky; left: 0; z-index: 1; margin: 0;
-    padding-right: 10px; background: rgba(15, 18, 16, .92);
+    padding-right: 10px; background: var(--topbar-bg, rgba(15, 18, 16, .92));
   }
 }
 
@@ -404,7 +404,7 @@ h1 {
   .top nav a:not(.brand) { display: none; }
   .top.open nav a:not(.brand) {
     display: block; padding: 14px 4px; font-size: 1.05rem;
-    border-top: 1px solid rgba(255, 255, 255, .07);
+    border-top: 1px solid var(--hairline, rgba(255, 255, 255, .07));
   }
   .top nav a:not(.brand)::after { display: none; }
 }
@@ -413,12 +413,12 @@ h1 {
 }
 
 /* ---------- collapsed role (even the current one) shows the grey side bar; green only while open ---------- */
-.job.fold.current:not([open]) { border-left-color: #2A342E; }
+.job.fold.current:not([open]) { border-left-color: var(--card-edge, #2A342E); }
 
 /* ---------- soft background gradient under the triangle mesh ---------- */
 body {
   background:
-    linear-gradient(180deg, #0F1210 0%, #121A15 100%);
+    var(--page-bg, linear-gradient(180deg, #0F1210 0%, #121A15 100%));
   background-color: var(--bg);
   background-attachment: fixed;
 }
@@ -438,7 +438,7 @@ body {
 /* ---------- About me and skill cards: green side bar like the K3s Lab card (replaces the top border) ---------- */
 .bio-text, .panel { border-left: 3px solid var(--accent); }
 .panel { border-top: 0; }
-.panel:hover { border-top-color: transparent; border-left-color: var(--gold); border-bottom-color: var(--gold); }
+.panel:hover { border-top-color: transparent; border-left-color: var(--gold-ink, var(--gold)); border-bottom-color: var(--gold-ink, var(--gold)); }
 
 /* ---------- cards with a green side bar also get a thin bottom line (0.75px = a quarter of the 3px bar) ---------- */
 .bio-text, .panel, .job.current, .job.fold[open] { border-bottom: .75px solid var(--accent); }
@@ -453,7 +453,7 @@ body {
   font: 400 1.9rem/1 "Monoton", var(--head); letter-spacing: .04em;
   background: linear-gradient(90deg, var(--gold), var(--accent));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(2px 3px 1px #000);
+  filter: var(--logo-shadow, drop-shadow(2px 3px 1px #000));
   transition: transform .2s;
   padding: 0 4px;
 }
@@ -479,7 +479,7 @@ h2 { font-size: clamp(1.8rem, 3.96vw, 2.7rem); }
 /* ---------- readability pass ---------- */
 /* 1. descriptions in the skill cards and other grey text: lighter */
 .panel p { color: #C9CBCF; }
-.meta { color: #B5B8BE; font-size: .88rem; }
+.meta { color: var(--meta, #B5B8BE); font-size: .88rem; }
 .muted { color: #D9DCE1; }
 /* 2. cards hide the 3D mesh better: 30% -> 60% opaque (still blurred, the relief stays visible) */
 .job, .panel, .detail, .bio-text, .hero { background: rgba(22, 27, 24, .60); }
@@ -488,7 +488,7 @@ h2 { font-size: clamp(1.8rem, 3.96vw, 2.7rem); }
 /* 4. the menu logo: back to the Monoton face, now the initials MT, larger */
 .brand-mate {
   font: 400 2.7rem/1 "Monoton", var(--head); letter-spacing: .02em;
-  filter: drop-shadow(2px 3px 1px #000);
+  filter: var(--logo-shadow, drop-shadow(2px 3px 1px #000));
 }
 @media (max-width: 820px) { .brand .brand-mate { font-size: 2.2rem; } }
 
