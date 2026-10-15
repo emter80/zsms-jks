@@ -372,7 +372,8 @@ details.fold > summary:active { opacity: .75; }
 /* JKS outline on the bar: the bar is sticky at the very top, so a copy of the outline placed at the screen centre
    lines up with the fixed background one (the tip of the S runs onto the bar); it sits under the bar's content (z-index -1 in the bar's stacking context) */
 .bar-j { position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
-.bar-j > .bg-j { top: 50vh; top: 50lvh; }   /* centre of the screen, like the fixed layer (100lvh tall) */
+.bar-j > .bg-j { top: 50vh; top: 50lvh;   /* centre of the screen, like the fixed layer (100lvh tall) */
+  opacity: .9; }                            /* stronger than on the page: the bright smoke on the bar washes it out */
 /* ---------- light theme: the top bar is dark too ----------
    Inside the bar the colour variables switch back to the dark theme, so the logo, links,
    the hamburger, the theme button and the phone drop-down menu all read on the dark ground. */
