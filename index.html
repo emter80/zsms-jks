@@ -3,53 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JKS SMS Jastrzębie — tabele ligowe</title>
-  <meta name="description" content="Aktualne tabele ligowe JKS SMS Jastrzębie: Juniorki Młodsze i Juniorki. Dane na żywo z systemu SZPS.">
+  <title>JKS SMS Jastrzębie — tabele ligowe i wyniki</title>
+  <meta name="description" content="Tabele ligowe i wyniki meczów wszystkich drużyn JKS SMS Jastrzębie: seniorki, juniorki, juniorki młodsze i młodziczki. Dane na żywo z systemu SZPS.">
   <meta name="theme-color" content="#0F1210">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Poppins:wght@300;400;500&family=Monoton&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2">
-  <link rel="stylesheet" href="league.css?v=2">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&family=Monoton&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="league.css?v=28">
 </head>
 <body>
 
-  <!-- Background: emerald triangle mesh that reacts gently to the pointer (see triangles3d.js) -->
-  <canvas id="tri" aria-hidden="true"></canvas>
+  <!-- JKS in thin outline (Monoton, same face as the ZSMS JKS logo) running from the bottom-left to the top-right corner -->
+  <img class="bg-j" src="jks.svg" alt="" aria-hidden="true">
 
   <header class="top" id="top-bar">
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><span></span></button>
     <nav id="site-nav" aria-label="Sekcje">
       <a class="brand" href="#top" aria-label="JKS SMS Jastrzębie, na górę"><span class="brand-mate" aria-hidden="true">ZSMS&nbsp;&nbsp;&nbsp;JKS</span></a>
-      <a href="#juniorki-mlodsze">Juniorki Młodsze</a>
-      <a href="#juniorki">Juniorki</a>
+      <!-- category links are added by the script from the API data -->
     </nav>
   </header>
 
   <main id="top">
-
-    <!-- JUNIORKI MŁODSZE -->
-    <section id="juniorki-mlodsze" class="section">
-      <header class="section-head">
-        <p class="label">Kategoria</p>
-        <h2>Juniorki Młodsze</h2>
-      </header>
-      <article class="job current" data-competition="Juniorki Młodsze" data-team="JKS SMS Jastrzębie">
-        <p class="status">Ładowanie danych…</p>
-      </article>
-    </section>
-
-    <!-- JUNIORKI -->
-    <section id="juniorki" class="section">
-      <header class="section-head">
-        <p class="label">Kategoria</p>
-        <h2>Juniorki</h2>
-      </header>
-      <article class="job current" data-competition="Juniorki" data-team="JKS SMS Jastrzębie II">
-        <p class="status">Ładowanie danych…</p>
-      </article>
-    </section>
-
+    <p class="status" id="loading">Ładowanie danych…</p>
   </main>
 
   <footer>
@@ -73,43 +50,66 @@
   </script>
 
   <script>
-    // Live data from the SZPS API; reused for CACHE_SECONDS in this browser (localStorage)
-    const API_URL = "https://system.szps.pl/webapi.php?standings&club=9";
-    const CACHE_SECONDS = 300;   // 5 minutes
-    const CACHE_KEY = "jks-sms-standings";
+    // Live data from the SZPS API.
+    // Cached in localStorage for CACHE_SECONDS. When the cache is older and the API fails (offline, outage),
+    // the last saved copy is shown and marked as stale instead of an error page.
+    const CACHE_SECONDS = 600;    // 10 minutes
+    const API_BASE = "https://system.szps.pl/webapi.php";
+    const STANDINGS_URL = API_BASE + "?standings&club=9";
+    const MATCHES_URL = API_BASE + "?matches&club=9";
 
     // localStorage can be blocked (private mode etc.): then we simply fetch every time
-    function readCache() {
+    function readCache(key) {
       try {
-        const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
-        if (cached && Date.now() - cached.time < CACHE_SECONDS * 1000) return cached;
+        const c = JSON.parse(localStorage.getItem(key));
+        if (c && typeof c.time === "number" && c.data) return c;
       } catch (e) {}
       return null;
     }
 
-    function writeCache(data, time) {
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ time, data })); } catch (e) {}
+    function writeCache(key, data, time) {
+      try { localStorage.setItem(key, JSON.stringify({ time, data })); } catch (e) {}
     }
 
-    async function getStandings() {
-      const cached = readCache();
-      if (cached) return cached;
-
-      const response = await fetch(API_URL);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const fresh = { time: Date.now(), data: await response.json() };
-      writeCache(fresh.data, fresh.time);
-      return fresh;
+    // -> { time, data, stale }   stale = true when the API failed and an older saved copy is returned
+    async function cachedFetch(url, key, isValid) {
+      const cached = readCache(key);
+      const usable = cached && isValid(cached.data);
+      if (usable && Date.now() - cached.time < CACHE_SECONDS * 1000) {
+        return { time: cached.time, data: cached.data, stale: false };
+      }
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!isValid(data)) throw new Error("nieprawidłowa odpowiedź API");
+        const time = Date.now();
+        writeCache(key, data, time);
+        return { time, data, stale: false };
+      } catch (err) {
+        if (usable) return { time: cached.time, data: cached.data, stale: true };
+        throw err;
+      }
     }
+
+    const getStandings = () => cachedFetch(STANDINGS_URL, "jks-sms-standings", (d) => Array.isArray(d.tables));
+
+    // Match results are fetched only when a team is expanded for the first time, then kept in memory
+    let matchesPromise = null;
+    function getMatches() {
+      if (!matchesPromise) {
+        matchesPromise = cachedFetch(MATCHES_URL, "jks-sms-matches", (d) => Array.isArray(d.matches))
+          .catch((e) => { matchesPromise = null; throw e; });
+      }
+      return matchesPromise;
+    }
+
+    const savedAt = (time) => new Date(time).toLocaleString("pl-PL");
+    const staleNote = (time) =>
+      el("p", "status stale", `API chwilowo niedostępne. Pokazuję zapisane dane z ${savedAt(time)}.`);
 
     // The API leaves double / trailing spaces in team names
     const clean = (name) => name.split(/\s+/).filter(Boolean).join(" ");
-
-    function findTable(data, competition, team) {
-      return data.tables.find(
-        (t) => t.competition === competition && t.club_teams.some((c) => clean(c.team) === team)
-      );
-    }
 
     function el(tag, className, text) {
       const node = document.createElement(tag);
@@ -118,13 +118,132 @@
       return node;
     }
 
-    function renderTable(table, team) {
-      const frag = document.createDocumentFragment();
+    // "<b>3:1</b> (25:16, 25:20, 16:25, 25:21)" -> { sets: "3:1", parts: ["25:16", ...] } or null
+    function parseScore(raw) {
+      const m = /(\d+):(\d+)\s*(?:<\/b>)?\s*\(([^)]*)\)/.exec(raw || "");
+      if (!m) return null;
+      const parts = m[3].split(",").map((p) => p.trim()).filter((p) => p && p !== "0:0");
+      return { home: +m[1], visitor: +m[2], parts };
+    }
+
+    const isUndated = (m) => !m.match_date || m.match_date <= "2000-01-01";
+
+    function matchItem(m, team) {
+      const home = clean(m.home), visitor = clean(m.visitor);
+      const score = parseScore(m.score);
+      const item = el("li", "match");
+      const mine = home === team ? "home" : "visitor";
+      if (score) item.classList.add(score[mine] > score[mine === "home" ? "visitor" : "home"] ? "win" : "loss");
+
+      // the system uses 2000-01-01 as "no date set yet"
+      const dateEl = el("span", "m-date");
+      if (isUndated(m)) {
+        dateEl.textContent = "termin do ustalenia";
+        dateEl.classList.add("tbd");
+      } else {
+        const date = new Date(m.match_date + "T12:00:00");
+        dateEl.textContent = date.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric" });
+      }
+      item.appendChild(dateEl);
+
+      // home and away each on their own line (CSS puts them back inline on wide screens)
+      const teams = el("span", "m-teams");
+      teams.appendChild(el("span", home === team ? "us" : null, home));
+      teams.appendChild(el("span", visitor === team ? "us" : null, visitor || "—"));
+      item.appendChild(teams);
+
+      const res = el("span", "m-score");
+      if (score) {
+        const won = item.classList.contains("win");
+        const top = el("span", "m-top");
+        // W / P letter: win and loss must not rely on colour alone
+        const tag = el("span", "m-res", won ? "W" : "P");
+        tag.title = won ? "Wygrana" : "Przegrana";
+        top.appendChild(tag);
+        top.appendChild(el("b", null, `${score.home}:${score.visitor}`));
+        res.appendChild(top);
+        if (score.parts.length) res.appendChild(el("small", null, score.parts.join(", ")));
+      }
+      item.appendChild(res);
+      return item;
+    }
+
+    function renderMatches(box, data, table, team) {
+      const all = data.matches
+        .filter((m) => m.competition_name === table.competition && m.group_name === table.group_name &&
+                       inActivePhase(m.phase) &&
+                       (clean(m.home) === team || clean(m.visitor) === team))
+        .sort((a, b) => a.match_date.localeCompare(b.match_date));
+      const played = all.filter((m) => parseScore(m.score));
+      const upcoming = all
+        .filter((m) => !parseScore(m.score) && clean(m.visitor))
+        .sort((a, b) => (isUndated(a) - isUndated(b)) || a.match_date.localeCompare(b.match_date));
+
+      box.replaceChildren();
+      if (!all.length) { box.appendChild(el("p", "status", "Brak meczów w systemie.")); return; }
+
+      for (const [title, list] of [["Wyniki", played.reverse()], ["Najbliższe mecze", upcoming]]) {
+        if (!list.length) continue;
+        box.appendChild(el("h4", null, title));
+        const ul = el("ul", "matches");
+        for (const m of list) ul.appendChild(matchItem(m, team));
+        box.appendChild(ul);
+      }
+    }
+
+    // Our team's name becomes a button; clicking it opens a row with that team's matches
+    function makeExpandable(row, team, table) {
+      const cell = row.cells[1];
+      const btn = el("button", "team-btn", team);
+      btn.type = "button";
+      btn.setAttribute("aria-expanded", "false");
+      cell.replaceChildren(btn);
+
+      let detail = null;
+      btn.addEventListener("click", async () => {
+        const open = btn.getAttribute("aria-expanded") !== "true";
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+        row.classList.toggle("open", open);
+        if (detail) detail.hidden = !open;
+        if (!open || detail) return;
+
+        detail = row.parentNode.insertRow(row.rowIndex);   // directly after the team row (thead is row 0)
+        detail.className = "detail";
+        const td = detail.insertCell();
+        td.colSpan = row.cells.length;
+        const box = el("div", "matches-box");
+        box.appendChild(el("p", "status", "Ładowanie meczów…"));
+        td.appendChild(box);
+        try {
+          const res = await getMatches();
+          renderMatches(box, res.data, table, team);
+          if (res.stale) box.prepend(staleNote(res.time));
+        } catch (err) {
+          box.replaceChildren(el("p", "status error", `Nie udało się pobrać meczów: ${err.message}`));
+          detail.remove(); detail = null;
+          btn.setAttribute("aria-expanded", "false");
+          row.classList.remove("open");
+        }
+      });
+    }
+
+    // "6", "11M" -> "Grupa 6", "Grupa 11M"; names like "1 Liga" or "Grupa 1 – I Liga" stay as they are
+    const groupTitle = (name) => (/^\d+[A-Za-z]?$/.test(clean(name)) ? `Grupa ${clean(name)}` : clean(name));
+
+    function renderTable(table, categoryTitle) {
+      const clubTeams = table.club_teams.map((c) => clean(c.team));
+      // collapsed by default: the header (with our teams' positions) is the toggle, the table opens below it
+      const frag = el("details", "fold");
+      const summary = el("summary");
 
       const header = el("header");
-      header.appendChild(el("h3", null, table.group_name));
+      header.appendChild(el("h3", null, `${categoryTitle} – ${groupTitle(table.group_name)}`));
       header.appendChild(el("p", "meta", `${table.competition} · drużyn: ${table.total_teams}`));
-      frag.appendChild(header);
+      const ours = table.club_teams
+        .map((c) => `${clean(c.team)}: ${c.position}. miejsce, ${c.points} pkt`).join(" · ");
+      if (ours) header.appendChild(el("p", "sum-ours", ours));
+      summary.appendChild(header);
+      frag.appendChild(summary);
 
       const wrap = el("div", "table-wrap");
       const tbl = el("table", "league");
@@ -137,7 +256,7 @@
       for (const t of table.full_standings) {
         const name = clean(t.team);
         const row = tbody.insertRow();
-        if (name === team) row.className = "me";
+        if (clubTeams.includes(name)) row.className = "me";
         const cells = [
           [t.position], [name], [t.matches_played], [t.wins], [t.points, "pts"],
           [`${t.sets_won}:${t.sets_lost}`], [`${t.points_scored}:${t.points_conceded}`],
@@ -147,6 +266,7 @@
           td.textContent = value;
           if (cls) td.className = cls;
         }
+        if (clubTeams.includes(name)) makeExpandable(row, name, table);
       }
       wrap.appendChild(tbl);
       frag.appendChild(wrap);
@@ -157,31 +277,69 @@
       card.replaceChildren(el("p", "status" + (isError ? " error" : ""), message));
     }
 
-    async function load() {
-      const cards = document.querySelectorAll("[data-competition]");
-      try {
-        const { data, time } = await getStandings();
+    // Only this stage (the API field "phase") is shown for now; set to null to show every stage
+    const ACTIVE_PHASE = 1;
+    const inActivePhase = (phase) => ACTIVE_PHASE === null || Number(phase) === ACTIVE_PHASE;
 
-        for (const card of cards) {
-          const table = findTable(data, card.dataset.competition, card.dataset.team);
-          if (table) {
-            card.replaceChildren(renderTable(table, card.dataset.team));
-          } else {
-            showStatus(card, "Brak tabeli dla tej kategorii.", false);
-          }
+    // Display order and names of the categories; anything unknown is appended in API order
+    const CATEGORY_ORDER = ["I Liga Śląska Kobiet", "Juniorki", "Juniorki Młodsze", "Młodziczki"];
+    const CATEGORY_TITLE = { "I Liga Śląska Kobiet": "Seniorki" };
+    const slug = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ł/g, "l").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+    function buildPage(data) {
+      const main = document.querySelector("main");
+      const nav = document.getElementById("site-nav");
+      main.replaceChildren();
+
+      // group tables by competition
+      const byCompetition = new Map();
+      for (const t of data.tables) {
+        if (!inActivePhase(t.phase)) continue;
+        if (!byCompetition.has(t.competition)) byCompetition.set(t.competition, []);
+        byCompetition.get(t.competition).push(t);
+      }
+      const rank = (c) => { const i = CATEGORY_ORDER.indexOf(c); return i < 0 ? 99 : i; };
+      const competitions = [...byCompetition.keys()].sort((a, b) => rank(a) - rank(b));
+
+      for (const competition of competitions) {
+        const title = CATEGORY_TITLE[competition] || competition;
+        const id = slug(title);
+
+        const link = el("a", null, title);
+        link.href = "#" + id;
+        nav.appendChild(link);
+
+        const section = el("section", "section");
+        section.id = id;
+
+        const tables = byCompetition.get(competition)
+          .sort((a, b) => clean(a.group_name).localeCompare(clean(b.group_name), "pl", { numeric: true }));
+        for (const table of tables) {
+          const card = el("article", "job current");
+          card.appendChild(renderTable(table, title));
+          section.appendChild(card);
         }
-        document.getElementById("footer").textContent =
-          `Dane: system.szps.pl · pobrane ${new Date(time).toLocaleString("pl-PL")}`;
+        main.appendChild(section);
+      }
+    }
+
+    async function load() {
+      try {
+        const { data, time, stale } = await getStandings();
+        buildPage(data);
+        if (stale) document.querySelector("main").prepend(staleNote(time));
+        document.getElementById("footer").textContent = stale
+          ? `Dane: system.szps.pl · zapisane ${savedAt(time)} (API niedostępne)`
+          : `Dane: system.szps.pl · pobrane ${savedAt(time)}`;
       } catch (err) {
-        for (const card of cards) {
-          showStatus(card, `Nie udało się pobrać danych z API: ${err.message}`, true);
-        }
+        document.querySelector("main").replaceChildren(
+          el("p", "status error", `Nie udało się pobrać danych z API: ${err.message}`));
       }
     }
 
     load();
   </script>
-  <script src="triangles3d.js"></script>
 
 </body>
 </html>
