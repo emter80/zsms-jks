@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=3">
-  <link rel="stylesheet" href="league.css?v=28">
+  <link rel="stylesheet" href="league.css?v=29">
 </head>
 <body>
 
@@ -224,6 +224,13 @@
           btn.setAttribute("aria-expanded", "false");
           row.classList.remove("open");
         }
+      });
+
+      // the whole row is a click target, not only the name (the button stays for keyboard / screen readers)
+      row.classList.add("club-row");
+      row.addEventListener("click", (e) => {
+        if (e.target.closest(".team-btn")) return;      // the button handles its own click
+        btn.click();
       });
     }
 

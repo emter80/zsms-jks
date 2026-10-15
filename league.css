@@ -220,3 +220,10 @@ main > .section > .job { margin-bottom: 0; }
 
 /* note shown when the API is down and saved data is displayed */
 .status.stale { color: var(--gold); font-size: .9rem; padding: 10px 0 4px; text-align: left; }
+
+/* our team rows: the whole bar expands the matches, so it looks clickable */
+.league tr.club-row { cursor: pointer; }
+.league tr.club-row:hover td { background: rgba(255, 255, 255, .045); }
+.league tr.me.club-row:hover td { background: rgba(16, 185, 129, .26); }
+.league tr.club-row:hover .team-btn { color: var(--text); }
+.league tr.club-row:hover .team-btn::after { transform: scaleX(1); }     /* same gold underline as the button hover */
