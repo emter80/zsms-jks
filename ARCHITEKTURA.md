@@ -123,6 +123,55 @@ sequenceDiagram
   end
 ```
 
+### Opis krok po kroku
+
+Strona chce pokazać aktualne tabele i wyniki. Zanim zapyta oficjalne API (`system.szps.pl`), sprawdza po
+kolei kilka magazynów podręcznych (cache), od najszybszego do najwolniejszego. API jest pytane dopiero
+wtedy, gdy żaden z nich nie ma świeżych danych.
+
+1. **`localStorage` (10 min).** Strona zagląda do własnej kopii w przeglądarce.
+   - Kopia młodsza niż 10 minut: koniec, dane są pokazane od razu, bez zapytania do sieci.
+   - Brak kopii albo starsza: dalej.
+2. **Cache HTTP przeglądarki (60 s).** Przeglądarka sprawdza, czy ma ostatnią odpowiedź `api/standings`
+   młodszą niż minuta.
+   - Tak: dane bez zapytania do sieci.
+   - Nie: zapytanie wychodzi do Cloudflare.
+3. **Cache CDN Cloudflare (60 s).** Najbliższy serwer Cloudflare trzyma gotową odpowiedź przez minutę.
+   - Ma ją: odsyła od razu (`Cf-Cache-Status: HIT`, `Age`); funkcja się nawet nie uruchamia.
+   - Nie ma: uruchamia funkcję `api/standings`.
+4. **Cache API w funkcji (10 min).** Funkcja sprawdza własną kopię.
+   - Młodsza niż 10 minut: oddaje ją z `X-Cache: HIT`, API nie jest pytane.
+   - Brak albo starsza: dalej.
+5. **Pytanie do `system.szps.pl`** (limit czasu 8 s). To jedyny moment, w którym naprawdę pytamy SZPS.
+   - Odpowiedź poprawna (JSON z `tables`): funkcja zapisuje kopię z `X-Cached-At` i oddaje dane
+     z `X-Cache: MISS`.
+   - Awaria albo zły kształt odpowiedzi: krok 6.
+6. **Awaria API po stronie funkcji.**
+   - Jest stara kopia: funkcja oddaje ją z `X-Cache: STALE`, a strona pokazuje baner o awarii API.
+   - Brak kopii: funkcja zwraca 502 (z `no-store`, więc błąd nie jest zapamiętywany).
+7. **Ostatnia deska ratunku w przeglądarce** (po 502).
+   - Strona sama pyta `system.szps.pl` bezpośrednio.
+   - API odpowiada: dane są pokazane, czas zapisu to „teraz”.
+   - API też nie działa, a w `localStorage` jest stara kopia: pokazana z banerem awarii.
+   - Brak czegokolwiek: komunikat o błędzie.
+8. **Zapis w przeglądarce.** Po udanym pobraniu strona zapisuje kopię w `localStorage` (czas z
+   `X-Cached-At`, a przy bezpośrednim API: bieżący czas), więc następne wejście w ciągu 10 minut jest
+   natychmiastowe.
+
+**W praktyce:**
+
+| Sytuacja | Skąd dane | Zapytań do SZPS |
+|----------|-----------|-----------------|
+| Powrót na stronę po 2 minutach | `localStorage` | 0 |
+| Inny odwiedzający w ciągu 60 s | cache CDN | 0 |
+| Inny odwiedzający w ciągu 10 min | cache funkcji | 0 |
+| Pierwszy odwiedzający po 10 min | API SZPS | 1 (dla wszystkich) |
+| API nie działa, jest stara kopia | cache funkcji (`STALE`) | 1 nieudane |
+| API nie działa, nigdzie nie ma kopii | komunikat o błędzie | próby nieudane |
+
+**Godzina w stopce** („pobrane …”) to `X-Cached-At`, czyli moment, w którym funkcja ostatnio faktycznie
+pobrała dane z SZPS. Może więc być starsza niż chwila otwarcia strony (nawet o kilka minut).
+
 ## 3. Warstwy cache
 
 | Warstwa | Czas | Kto ją trzyma | Wpływ na stronę |
