@@ -368,6 +368,7 @@ details.fold > summary:active { opacity: .75; }
   background: url("kleby.svg") center 35% / 100vw auto no-repeat, var(--topbar-bg);
   border-bottom-color: #E0A800;
 }
+.top nav a:not(.brand) { color: #E4E6EA; }   /* menu links: light grey on the dark bar (hover: white) */
 /* ---------- light theme: the top bar is dark too ----------
    Inside the bar the colour variables switch back to the dark theme, so the logo, links,
    the hamburger, the theme button and the phone drop-down menu all read on the dark ground. */
