@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=4">
-  <link rel="stylesheet" href="league.css?v=32">
+  <link rel="stylesheet" href="league.css?v=33">
 </head>
 <body>
 
@@ -63,10 +63,22 @@
     (function () {
       var bar = document.getElementById('top-bar');
       var btn = bar.querySelector('.menu-toggle');
+      // The bar's real height (closed) is exported as --bar-h; anchor jumps use it as scroll-padding-top,
+      // so a section lands exactly under the bar and no edge of the previous card peeks out.
+      // While the phone menu is open the bar is taller, so it is only measured when closed.
+      function measureBar() {
+        if (bar.classList.contains('open')) return;
+        document.documentElement.style.setProperty('--bar-h', Math.round(bar.getBoundingClientRect().height) + 'px');
+      }
       function set(open) {
         bar.classList.toggle('open', open);
         btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        measureBar();                       // runs before the browser performs the anchor jump
       }
+      measureBar();
+      window.addEventListener('resize', measureBar);
+      if (window.ResizeObserver) new ResizeObserver(measureBar).observe(bar);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureBar);   // logo font changes the bar height
       btn.addEventListener('click', function () { set(!bar.classList.contains('open')); });
       bar.addEventListener('click', function (e) { if (e.target.closest('nav a')) set(false); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
