@@ -70,6 +70,7 @@ sequenceDiagram
   autonumber
   participant B as Przeglądarka
   participant LS as localStorage
+  participant BC as Cache HTTP przeglądarki (60 s)
   participant CDN as Cache CDN (60 s)
   participant F as Funkcja Pages (api)
   participant C as Cache API (10 min)
@@ -79,32 +80,46 @@ sequenceDiagram
   alt tak
     LS-->>B: dane i czas zapisu (zero zapytań sieciowych)
   else nie
-    B->>CDN: GET api/standings
-    alt CDN HIT (kopia młodsza niż 60 s)
-      CDN-->>B: 200, X-Cached-At
-    else CDN MISS
-      CDN->>F: żądanie
-      F->>C: match
-      alt kopia świeża (młodsza niż 10 min)
-        C-->>F: kopia
-        F-->>B: X-Cache HIT
-      else brak lub stara kopia
-        F->>S: GET standings club=9 (timeout 8 s)
-        alt odpowiedź poprawna (JSON, tables)
-          S-->>F: JSON
-          F->>C: zapis kopii i X-Cached-At
-          F-->>B: X-Cache MISS
-        else awaria lub zły kształt
-          alt jest stara kopia
-            F-->>B: X-Cache STALE
-          else brak kopii
-            F-->>B: 502
-            B->>S: fallback: bezpośrednie zapytanie
+    B->>BC: GET api/standings
+    alt kopia młodsza niż 60 s
+      BC-->>B: dane (bez zapytania sieciowego)
+    else brak lub starsza
+      B->>CDN: GET api/standings
+      alt CDN HIT (młodsza niż 60 s)
+        CDN-->>B: 200, X-Cached-At
+      else CDN MISS
+        CDN->>F: żądanie
+        F->>C: match
+        alt kopia świeża (młodsza niż 10 min)
+          C-->>F: kopia
+          F-->>B: X-Cache HIT
+        else brak lub stara kopia
+          F->>S: GET standings club=9 (timeout 8 s)
+          alt odpowiedź poprawna (JSON, tables)
+            S-->>F: JSON
+            F->>C: zapis kopii i X-Cached-At
+            F-->>B: X-Cache MISS
+          else awaria lub zły kształt
+            alt jest stara kopia w Cache API
+              F-->>B: X-Cache STALE (baner o awarii)
+            else brak kopii
+              F-->>B: 502 (bez cache)
+              B->>S: fallback: bezpośrednie zapytanie
+              alt SZPS odpowiada
+                S-->>B: JSON (czas zapisu = teraz)
+              else SZPS też nie działa
+                alt jest stara kopia w localStorage
+                  LS-->>B: stara kopia (baner o awarii)
+                else brak kopii
+                  B-->>B: komunikat o błędzie
+                end
+              end
+            end
           end
         end
       end
     end
-    B->>LS: zapis kopii (czas z X-Cached-At)
+    B->>LS: zapis kopii (czas z X-Cached-At, a przy bezpośrednim API: teraz)
   end
 ```
 
@@ -113,6 +128,7 @@ sequenceDiagram
 | Warstwa | Czas | Kto ją trzyma | Wpływ na stronę |
 |---------|------|---------------|-----------------|
 | `localStorage` | 10 min | przeglądarka | brak zapytań sieciowych; czas „pobrane” bez zmian |
+| Cache HTTP przeglądarki | 60 s | przeglądarka | odpowiedź `/api/*` ma `max-age=60`, więc kolejne zapytanie w ciągu minuty nie wychodzi do sieci |
 | Cache CDN | 60 s | brzeg Cloudflare | funkcja w ogóle się nie uruchamia |
 | Cache API (funkcja) | 10 min, stara do 7 dni | brzeg Cloudflare | jedno zapytanie do SZPS na wszystkich odwiedzających |
 | Bezpośrednie API | zawsze świeże | `system.szps.pl` | GitHub Pages oraz awaria funkcji |
