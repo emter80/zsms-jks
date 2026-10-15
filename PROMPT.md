@@ -106,9 +106,14 @@ bez przewijania w bok.
   stałą pustą przestrzeń między ostatnią kartą a stopką. Zamiast tego, **w momencie kliknięcia linku**
   menu, skrypt wylicza brakującą wysokość (`pozycja celu − wysokość paska + wysokość ekranu − wysokość
   strony`) i dodaje dokładnie tyle przestrzeni po ostatniej sekcji (`main::after`, zmienna `--room`),
-  zanim przeglądarka wykona skok. Przestrzeń znika sama, gdy bieżąca pozycja przewijania jest
-  osiągalna także bez niej (kontrola przy przewijaniu, przy zmianie rozmiaru i co 400 ms jako
-  zabezpieczenie). W spoczynku odstęp ostatnia karta → stopka ma być naturalny (ok. 90 px).
+  zanim przeglądarka wykona skok. **Przestrzeń nie może zniknąć w trakcie skoku**: strona ma
+  `scroll-behavior: smooth`, więc pierwsze zdarzenia przewijania przychodzą, gdy strona jest jeszcze
+  daleko od celu, a zdjęcie przestrzeni skróciłoby animację (trzeba by kliknąć link drugi raz).
+  Skok trwa od kliknięcia do dotarcia na zaplanowaną pozycję (±2 px), albo do 400 ms ciszy po
+  ostatnim zdarzeniu przewijania, albo 700 ms bez żadnego przewijania. Dopiero potem przestrzeń
+  znika sama, gdy bieżąca pozycja jest osiągalna także bez niej (kontrola przy przewijaniu, przy
+  zmianie rozmiaru i co 400 ms jako zabezpieczenie). W spoczynku odstęp ostatnia karta → stopka ma
+  być naturalny (ok. 90 px). Testuj to przy **płynnym**, a nie natychmiastowym przewijaniu.
   Sekcja wybrana z menu (`:target`) na 1,6 s podświetla pierwszą kartę złotą ramką (wyłączone przy
   `prefers-reduced-motion`).
 - Stopka: `Dane: system.szps.pl · pobrane <data i godzina>`.

@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=4">
-  <link rel="stylesheet" href="league.css?v=35">
+  <link rel="stylesheet" href="league.css?v=36">
 </head>
 <body>
 
@@ -103,24 +103,57 @@
         var barH = parseFloat(getComputedStyle(root).getPropertyValue('--bar-h')) || bar.getBoundingClientRect().height;
         var targetTop = target.getBoundingClientRect().top + window.pageYOffset;   // not affected by space added below
         var docHeight = root.scrollHeight - room;                                  // page height without the extra room
+        // while the phone menu is open the bar (and everything under it) is taller; it will close right away
+        var openExtra = Math.max(0, bar.getBoundingClientRect().height - barH);
+        jumpY = targetTop - openExtra - barH;                                      // scroll position the jump aims for
         // the page can scroll to (docHeight + room - viewport); the section must reach (targetTop - barH)
         return targetTop - barH + viewport - docHeight + 2;
+      }
+
+      // A jump is "in progress" from the click until it has arrived. The extra room must not be taken away
+      // in that time: the page has smooth scrolling, so the first scroll events come when the page is still far
+      // from the target, and removing the room then would cut the animation short (two clicks needed).
+      var jumping = false, jumpY = 0, jumpIdle = null, jumpGuard = null;
+      function endJump() {
+        jumping = false;
+        clearTimeout(jumpIdle); clearTimeout(jumpGuard);
+        dropRoomIfUnneeded();
+      }
+      function beginJump() {
+        jumping = true;
+        clearTimeout(jumpIdle);
+        clearTimeout(jumpGuard);
+        // if no scrolling starts at all (already at the target) the jump is over after a moment; the first scroll
+        // event cancels this timer, and from then on arrival / "scrolling has stopped" end the jump
+        jumpGuard = setTimeout(endJump, 700);
       }
       bar.addEventListener('click', function (e) {
         var link = e.target.closest('nav a');
         if (!link) return;
         setRoom(roomFor(link));          // before the browser performs the jump
+        beginJump();
         set(false);
       });
       // Cheap enough to run on every scroll event, and only while there is extra room.
       function dropRoomIfUnneeded() {
-        if (room === 0) return;
+        if (room === 0 || jumping) return;
         // without the extra room the page can scroll at most this far; as long as the current position is within
         // that, removing the room cannot move anything the visitor sees
         var maxWithoutRoom = root.scrollHeight - room - root.clientHeight;
         if (window.pageYOffset <= maxWithoutRoom) setRoom(0);
       }
-      window.addEventListener('scroll', dropRoomIfUnneeded, { passive: true });
+      function onScroll() {
+        if (jumping) {
+          clearTimeout(jumpGuard);                       // the animation is running
+          // arrived, or the scrolling has stopped (the visitor interrupted it / it was clamped)
+          if (Math.abs(window.pageYOffset - jumpY) <= 2) { endJump(); return; }
+          clearTimeout(jumpIdle);
+          jumpIdle = setTimeout(endJump, 400);
+          return;
+        }
+        dropRoomIfUnneeded();
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', dropRoomIfUnneeded);
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
       window.addEventListener('resize', function () { if (window.innerWidth > 820) set(false); });
