@@ -341,3 +341,17 @@ main > .section:target > .job:first-of-type {
 @media (prefers-reduced-motion: reduce) {
   main > .section:target > .job:first-of-type { animation: none; }
 }
+
+/* ---------- touch: no browser tap highlight ----------
+   Mobile browsers flash a (blue) rectangle on whatever is tapped. The page has its own states (open card,
+   underline, hover/active colours), so the default flash is turned off. The tapped control still gets
+   feedback from :active below. */
+html { -webkit-tap-highlight-color: transparent; }
+a, button, summary, tr.club-row, .team-btn, .theme-toggle, .menu-toggle {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;                   /* no double-tap zoom delay on controls */
+}
+/* a double tap / long press on a control or on a clickable row does not select its text (blue selection) */
+summary, button, .team-btn, tr.club-row td { -webkit-user-select: none; user-select: none; }
+details.fold > summary:active { opacity: .75; }
+.theme-toggle:active, .menu-toggle:active { background: var(--accent-soft); }
