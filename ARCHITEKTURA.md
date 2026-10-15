@@ -15,7 +15,7 @@ flowchart TB
   dev["Autor zmian<br/>lokalne repo"]
 
   subgraph GH["GitHub"]
-    repo["Repozytorium emter80/zsms-jks<br/>main, feature/cache, pull request"]
+    repo["Repozytorium emter80/zsms-jks<br/>main, gałęzie feature/*, pull requesty"]
     ghp["GitHub Pages<br/>emter80.github.io/zsms-jks<br/>tylko pliki statyczne, bez funkcji"]
   end
 
