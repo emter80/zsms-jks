@@ -504,3 +504,15 @@ h2 { font-size: clamp(1.8rem, 3.96vw, 2.7rem); }
   color: var(--text); opacity: .92;
 }
 @media (max-width: 480px) { .hero h1.person { font-size: .8rem; letter-spacing: .24em; } }
+
+/* ---------- logo hover: the gold/green gradient flows through the letters ---------- */
+.brand-mate {
+  --c1: #E6B75A; --c2: #10B981;
+  background: linear-gradient(90deg, var(--c1), var(--c2), var(--c1));
+  background-size: 200% 100%; background-position: 0 0;
+  -webkit-background-clip: text; background-clip: text;
+  transition: background-position .7s ease;
+}
+html[data-theme="light"] .brand-mate { --c1: #8A6200; --c2: #0B6B3A; }
+.brand:hover .brand-mate { background-position: 100% 0; }
+@media (prefers-reduced-motion: reduce) { .brand-mate { transition: none; } }
