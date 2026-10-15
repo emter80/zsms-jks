@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=6">
-  <link rel="stylesheet" href="league.css?v=39">
+  <link rel="stylesheet" href="league.css?v=40">
 </head>
 <body>
 
@@ -286,6 +286,8 @@
     }
 
     const isUndated = (m) => !m.match_date || m.match_date <= "2000-01-01";
+    // a blank home or visitor means our team has a bye that round
+    const isBye = (m) => !clean(m.home) || !clean(m.visitor);
 
     function matchItem(m, team) {
       const home = clean(m.home), visitor = clean(m.visitor);
@@ -307,8 +309,13 @@
 
       // home and away each on their own line (CSS puts them back inline on wide screens)
       const teams = el("span", "m-teams");
-      teams.appendChild(el("span", home === team ? "us" : null, home));
-      teams.appendChild(el("span", visitor === team ? "us" : null, visitor || "—"));
+      if (isBye(m)) {
+        teams.appendChild(el("span", "us", team));
+        teams.appendChild(el("span", "bye", "pauzuje"));
+      } else {
+        teams.appendChild(el("span", home === team ? "us" : null, home));
+        teams.appendChild(el("span", visitor === team ? "us" : null, visitor));
+      }
       item.appendChild(teams);
 
       const res = el("span", "m-score");
@@ -334,8 +341,10 @@
                        (clean(m.home) === team || clean(m.visitor) === team))
         .sort((a, b) => a.match_date.localeCompare(b.match_date));
       const played = all.filter((m) => parseScore(m.score));
+      const today = new Date().toLocaleDateString("sv-SE");
       const upcoming = all
-        .filter((m) => !parseScore(m.score) && clean(m.visitor))
+        // a bye is only worth showing while it is still ahead (local date as YYYY-MM-DD)
+        .filter((m) => !parseScore(m.score) && !(isBye(m) && !isUndated(m) && m.match_date < today))
         .sort((a, b) => (isUndated(a) - isUndated(b)) || a.match_date.localeCompare(b.match_date));
 
       box.replaceChildren();

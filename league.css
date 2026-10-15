@@ -358,3 +358,6 @@ a, button, summary, tr.club-row, .team-btn, .theme-toggle, .menu-toggle {
 summary, button, .team-btn, tr.club-row td { -webkit-user-select: none; user-select: none; }
 details.fold > summary:active { opacity: .75; }
 .theme-toggle:active, .menu-toggle:active { background: var(--accent-soft); }
+
+/* bye round: "pauzuje" instead of a rival name */
+.m-teams span.bye { font-style: italic; color: var(--muted); }
