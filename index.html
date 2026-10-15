@@ -118,13 +118,15 @@
     // Two cache levels:
     //   1. server: the Cloudflare function "api/..." keeps one shared copy for all visitors (10 min),
     //   2. browser: localStorage for CACHE_SECONDS.
-    // Each data set has two URLs: our own endpoint first, then the SZPS API directly (used on hosting
-    // without functions, e.g. GitHub Pages, or when our endpoint is down).
-    // When both fail and an older saved copy exists, it is shown and marked as stale instead of an error.
+    // Each data set has two URLs: our own endpoint first, then the SZPS API directly (used when our endpoint
+    // is down). Hosts that cannot have functions skip our endpoint entirely (no pointless 404 on every visit):
+    // GitHub Pages (*.github.io) and anything that is not served over http(s), e.g. a local file.
+    // When all URLs fail and an older saved copy exists, it is shown and marked as stale instead of an error.
     const CACHE_SECONDS = 600;    // 10 minutes
     const API_BASE = "https://system.szps.pl/webapi.php";
-    const STANDINGS_URLS = ["api/standings", API_BASE + "?standings&club=9"];
-    const MATCHES_URLS = ["api/matches", API_BASE + "?matches&club=9"];
+    const HAS_OWN_ENDPOINTS = /^https?:$/.test(location.protocol) && !/(^|\.)github\.io$/i.test(location.hostname);
+    const STANDINGS_URLS = (HAS_OWN_ENDPOINTS ? ["api/standings"] : []).concat(API_BASE + "?standings&club=9");
+    const MATCHES_URLS = (HAS_OWN_ENDPOINTS ? ["api/matches"] : []).concat(API_BASE + "?matches&club=9");
 
     // localStorage can be blocked (private mode etc.): then we simply fetch every time
     function readCache(key) {

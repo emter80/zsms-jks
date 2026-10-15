@@ -118,9 +118,13 @@ bez przewijania w bok.
   otwarte proxy). Odpowiedź ma nagłówki `X-Cache: HIT | MISS | STALE` i `X-Cached-At` (czas kopii w ms).
   Gdy API nie odpowiada, a stara kopia istnieje, serwer oddaje ją z `X-Cache: STALE` (do 7 dni); bez kopii
   zwraca 502. Zła odpowiedź API (nie-JSON, zły kształt) nie nadpisuje dobrej kopii.
-- **Strona** pyta najpierw własnego endpointu (`api/standings`, ścieżka względna), a gdy go nie ma
-  (404, np. GitHub Pages) lub zawiedzie, to bezpośrednio API SZPS. Czas „pobrane” bierze z `X-Cached-At`,
-  a `X-Cache: STALE` włącza komunikat o awarii API.
+- **Strona** pyta najpierw własnego endpointu (`api/standings`, ścieżka względna), a gdy zawiedzie
+  (404, 502, zły kształt danych), to bezpośrednio API SZPS. Na hostach, które nie mogą mieć funkcji
+  (`*.github.io` oraz każda strona nie serwowana przez http(s), np. plik lokalny), własny endpoint jest
+  pomijany od razu, żeby nie robić zbędnego zapytania z 404 przy każdym wejściu (stała
+  `HAS_OWN_ENDPOINTS`; dopasowanie hosta po kropce lub początku nazwy, więc `evilgithub.io` nie jest
+  traktowane jak GitHub Pages). Czas „pobrane” bierze z `X-Cached-At`, a `X-Cache: STALE` włącza komunikat
+  o awarii API.
 - `localStorage`, osobne klucze dla tabel i meczów, ważność **10 minut** (`CACHE_SECONDS = 600`).
 - Gdy cache jest starszy, spróbuj pobrać dane. Jeśli się nie uda (offline, awaria API),
   pokaż **ostatnią zapisaną kopię** z żółto-złotym komunikatem „API chwilowo niedostępne. Pokazuję
