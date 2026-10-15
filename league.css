@@ -388,9 +388,11 @@ details.fold > summary:active { opacity: .75; }
 /* set scores: won sets green, lost sets red (same colours as the W / P tags) */
 .m-score .set-w { color: var(--accent); }
 .m-score .set-l { color: var(--loss-text, #f0a3a3); }
-/* light theme: dark text on a light card looks thinner than light text on dark, so the result block
-   is a little heavier and the win/loss colours a little deeper (sizes stay the same as in the dark theme) */
-:root[data-theme="light"] .m-score small { font-weight: 500; color: #4F6258; }
-:root[data-theme="light"] .m-score .set-w { color: #075A30; font-weight: 600; }
-:root[data-theme="light"] .m-score .set-l { color: #A32A20; font-weight: 600; }
-:root[data-theme="light"] .m-res { font-weight: 700; }
+/* result block: sets and the W / P tag a little heavier (both themes, same sizes) */
+.m-score small { font-weight: 500; }
+.m-score .set-w, .m-score .set-l { font-weight: 600; }
+.m-res { font-weight: 700; }
+/* light theme: deeper win/loss colours and a darker grey for the commas, so they read on the light card */
+:root[data-theme="light"] .m-score small { color: #4F6258; }
+:root[data-theme="light"] .m-score .set-w { color: #075A30; }
+:root[data-theme="light"] .m-score .set-l { color: #A32A20; }
