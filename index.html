@@ -437,7 +437,7 @@
       if (table.club_teams.length) {
         const ours = el("ul", "sum-ours");
         [...table.club_teams].sort((a, b) => a.position - b.position).forEach((c) => {
-          ours.appendChild(el("li", null, `${clean(c.team)}: ${c.position}. miejsce, ${c.points} pkt`));
+          ours.appendChild(el("li", null, `${clean(c.team)}: ${c.position} miejsce, ${c.points} pkt`));
         });
         header.appendChild(ours);
       }

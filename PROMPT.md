@@ -65,7 +65,7 @@ Zawartość `summary`:
 - tytuł `h3`: `Nazwa kategorii – nazwa grupy` (np. „Seniorki – Grupa 1”, „Juniorki – 2 Liga A”);
   grupy zapisane samym numerem/skrótem (`1`, `6`, `11M`) pokazuj jako „Grupa 1” itd.;
 - linia meta: `Rozgrywki · drużyn: N` (np. „Juniorki · drużyn: 6”);
-- złota linia z naszymi drużynami: `JKS SMS Jastrzębie: 4. miejsce, 6 pkt` (kilka drużyn
+- złota linia z naszymi drużynami: `JKS SMS Jastrzębie: 4 miejsce, 6 pkt` (kilka drużyn
   oddzielonych `·`);
 - strzałka (chevron) po prawej, obracana po otwarciu; złote podkreślenie tytułu rośnie od lewej
   przy najechaniu, fokusie i w stanie otwartym.
