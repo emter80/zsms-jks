@@ -195,7 +195,7 @@ details.fold[open] > summary { margin-bottom: 4px; }
 main > .section { padding-top: 14px; padding-bottom: 0; }
 main > .section:first-of-type { padding-top: 32px; }
 main > .section > .job + .job { margin-top: 14px; }
-main > .section > .job { margin-bottom: 0; }
+main > .section > .job { margin-bottom: 0; border-left-width: 8px; }   /* side bar: double the base 4px */
 
 /* ---------- Inter in tables and match lists (titles and the rest keep Montserrat / Poppins) ---------- */
 .table-wrap, .matches-box {

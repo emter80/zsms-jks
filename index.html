@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=6">
-  <link rel="stylesheet" href="league.css?v=50">
+  <link rel="stylesheet" href="league.css?v=53">
 </head>
 <body>
 
@@ -349,7 +349,7 @@
     function renderMatches(box, data, table, team) {
       const all = data.matches
         .filter((m) => m.competition_name === table.competition && m.group_name === table.group_name &&
-                       inActivePhase(m.phase) &&
+                       Number(m.phase) === Number(table.phase) &&
                        (clean(m.home) === team || clean(m.visitor) === team))
         .sort((a, b) => a.match_date.localeCompare(b.match_date));
       const played = all.filter((m) => parseScore(m.score));
@@ -415,7 +415,14 @@
     }
 
     // "6", "11M" -> "Grupa 6", "Grupa 11M"; names like "1 Liga" or "Grupa 1 – I Liga" stay as they are
-    const groupTitle = (name) => (/^\d+[A-Za-z]?$/.test(clean(name)) ? `Grupa ${clean(name)}` : clean(name));
+    // "Grupa 1 – I Liga" -> "1 Liga" (same style as "1 Liga", "2 Liga A" in Juniorki)
+    const ROMAN_LEAGUE = { I: "1", II: "2", III: "3" };
+    function groupTitle(name) {
+      const n = clean(name);
+      if (/^\d+[A-Za-z]?$/.test(n)) return `Grupa ${n}`;
+      const m = n.match(/^Grupa\s+\d+\s*[–-]\s*(I{1,3})\s+Liga(.*)$/i);
+      return m ? `${ROMAN_LEAGUE[m[1].toUpperCase()]} Liga${m[2]}` : n;
+    }
 
     function renderTable(table, categoryTitle) {
       const clubTeams = table.club_teams.map((c) => clean(c.team));
@@ -424,7 +431,7 @@
       const summary = el("summary");
 
       const header = el("header");
-      header.appendChild(el("h3", null, `${categoryTitle} – ${groupTitle(table.group_name)}`));
+      header.appendChild(el("h3", null, `${categoryTitle} – ${groupTitle(table.group_name)} - Etap ${Number(table.phase)}`));
       header.appendChild(el("p", "meta", `${table.competition} · drużyn: ${table.total_teams}`));
       // our teams, one per line (best position first): several teams joined in one line wrap badly on phones
       if (table.club_teams.length) {
@@ -469,9 +476,18 @@
       card.replaceChildren(el("p", "status" + (isError ? " error" : ""), message));
     }
 
-    // Only this stage (the API field "phase") is shown for now; set to null to show every stage
-    const ACTIVE_PHASE = 1;
-    const inActivePhase = (phase) => ACTIVE_PHASE === null || Number(phase) === ACTIVE_PHASE;
+    // Each category shows only its latest stage (the API field "phase"): when a category moves on to
+    // stage 2, its stage 1 tables and matches disappear, other categories stay on their own stage.
+    const activePhase = new Map();
+    function setActivePhases(tables) {
+      activePhase.clear();
+      for (const t of tables) {
+        const ph = Number(t.phase);
+        if (!activePhase.has(t.competition) || ph > activePhase.get(t.competition)) activePhase.set(t.competition, ph);
+      }
+    }
+    const inActivePhase = (competition, phase) =>
+      !activePhase.has(competition) || Number(phase) === activePhase.get(competition);
 
     // Display order and names of the categories; anything unknown is appended in API order
     const CATEGORY_ORDER = ["I Liga Śląska Kobiet", "Juniorki", "Juniorki Młodsze", "Młodziczki"];
@@ -486,8 +502,9 @@
 
       // group tables by competition
       const byCompetition = new Map();
+      setActivePhases(data.tables);
       for (const t of data.tables) {
-        if (!inActivePhase(t.phase)) continue;
+        if (!inActivePhase(t.competition, t.phase)) continue;
         if (!byCompetition.has(t.competition)) byCompetition.set(t.competition, []);
         byCompetition.get(t.competition).push(t);
       }
@@ -505,10 +522,19 @@
         const section = el("section", "section");
         section.id = id;
 
-        const tables = byCompetition.get(competition)
-          .sort((a, b) => clean(a.group_name).localeCompare(clean(b.group_name), "pl", { numeric: true }));
+        const byGroup = (a, b) => clean(a.group_name).localeCompare(clean(b.group_name), "pl", { numeric: true });
+        const tables = byCompetition.get(competition).sort(byGroup);
         for (const table of tables) {
           const card = el("article", "job current");
+          card.appendChild(renderTable(table, title));
+          section.appendChild(card);
+        }
+
+        // earlier stages of this category: ordinary cards right under the current ones, newest stage first
+        const older = data.tables.filter((t) => t.competition === competition && !inActivePhase(t.competition, t.phase))
+          .sort((a, b) => (Number(b.phase) - Number(a.phase)) || byGroup(a, b));
+        for (const table of older) {
+          const card = el("article", "job");
           card.appendChild(renderTable(table, title));
           section.appendChild(card);
         }

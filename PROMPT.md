@@ -43,8 +43,9 @@ występuje jako `home` lub `visitor`.
 - `match_date = "2000-01-01"` oznacza „brak terminu”. Pokaż „termin do ustalenia”, a na liście
   najbliższych meczów umieść takie mecze na końcu.
 - Puste `visitor` (spacja) to wolny los. Nie pokazuj takiego meczu na liście najbliższych.
-- Pole `phase` to etap rozgrywek. Pokazuj tylko etap 1 (stała `ACTIVE_PHASE = 1`; `null` pokazuje
-  wszystkie etapy). Tego samego filtra użyj dla tabel i dla meczów.
+- Pole `phase` to etap rozgrywek. Dla każdej kategorii (`competition`) pokazuj tylko jej najwyższy
+  dostępny etap (np. Młodziczki są już w etapie 2, reszta w etapie 1; gdy kategoria przejdzie dalej, stary
+  etap znika sam). Tego samego filtra użyj dla tabel i dla meczów.
 - Wynik rozbijaj regexem: `(\d+):(\d+)` w pogrubieniu, potem punkty setów w nawiasie. Pomijaj sety
   `0:0`. Nie wstawiaj danych z API przez `innerHTML`, tylko `textContent`.
 - Ten sam klub może mieć kilka drużyn w jednej tabeli (JKS, JKS II, JKS III).
@@ -234,7 +235,7 @@ treścią. Zawiera dwie rzeczy:
 ## 8. Kryteria akceptacji
 
 1. Po wejściu widać 6 zwiniętych kart (przy aktualnych danych: Seniorki – Grupa 1; Juniorki – 1 Liga,
-   2 Liga A, 2 Liga B; Juniorki Młodsze – Grupa 1 – I Liga; Młodziczki – Grupa 6), każda z miejscem
+   2 Liga A, 2 Liga B; Juniorki Młodsze – 1 Liga; Młodziczki – Grupa 11M i Grupa 13M z etapu 2), każda z miejscem
    naszych drużyn.
 2. Klik w dowolne miejsce paska naszej drużyny rozwija jej mecze (z W/P, wynikami i setami); mecz
    z datą 2000-01-01 pokazuje „termin do ustalenia” na końcu najbliższych.
