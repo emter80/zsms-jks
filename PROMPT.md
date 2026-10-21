@@ -40,6 +40,9 @@ występuje jako `home` lub `visitor`.
 
 - Nazwy drużyn mają zbędne spacje na końcu i podwójne spacje. Normalizuj: rozbij po białych znakach
   i złącz pojedynczą spacją.
+- Godzina meczu: dla nierozegranych meczów (bez wolnego losu) pokaż `godz. GG:MM` przy dacie. Bierz ją z pola
+  czasu (`match_time`, `time`, `match_hour`, `hour`) albo z części czasu w `match_date` („RRRR-MM-DD GG:MM:SS”);
+  datę licz tylko z pierwszych 10 znaków `match_date`. `00:00` lub brak godziny oznacza „nie ustalono”, wtedy pokaż samą datę.
 - `match_date = "2000-01-01"` oznacza „brak terminu”. Pokaż „termin do ustalenia”, a na liście
   najbliższych meczów umieść takie mecze na końcu.
 - Puste `visitor` (spacja) to wolny los. Nie pokazuj takiego meczu na liście najbliższych.

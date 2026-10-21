@@ -140,6 +140,12 @@ body {
 .m-teams span { display: block; }
 .m-teams span + span { margin-top: 2px; }
 .m-date.tbd { font-style: italic; }
+/* start time of an upcoming match: under the date, next to it on phones */
+.m-time { display: block; color: var(--text); }
+@media (max-width: 560px) {
+  .m-time { display: inline; }
+  .m-time::before { content: " · "; color: var(--muted); }
+}
 @media (min-width: 561px) {
   .m-teams span { display: inline; }
   .m-teams span + span::before { content: " – "; color: var(--muted); font-weight: 400; }
