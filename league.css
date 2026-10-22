@@ -140,6 +140,29 @@ body {
 .m-teams span { display: block; }
 .m-teams span + span { margin-top: 2px; }
 .m-date.tbd { font-style: italic; }
+/* a match opens its details (time, venue) from the SZPS match page */
+.match.expandable { cursor: pointer; position: relative; padding-right: 32px; }
+/* chevron at the right edge, same as the team names and the table folds */
+.match.expandable::after {
+  content: ""; position: absolute; right: 12px; top: 50%; width: 7px; height: 7px; margin-top: -6px;
+  border-right: 2px solid var(--accent); border-bottom: 2px solid var(--accent);
+  transform: rotate(45deg); transition: transform .2s;
+}
+.match.expandable[aria-expanded="true"]::after { transform: rotate(-135deg); margin-top: -2px; }
+@media (prefers-reduced-motion: reduce) { .match.expandable::after { transition: none; } }
+.match.expandable:hover { background: var(--detail-bg, rgba(255, 255, 255, .04)); }
+.match.expandable:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.match[aria-expanded="true"] { margin-bottom: 0; }
+.m-details {
+  list-style: none; margin: 0 0 6px; padding: 6px 10px 8px 13px; font-size: .86rem;
+  background: var(--panel-2); border-top: 1px dashed var(--line);
+}
+.m-details::before { content: none; }
+.m-details dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 6px; }
+.m-details dt { color: var(--muted); }
+.m-details dd { margin: 0; color: var(--text); }
+.m-details .status { margin: 0 0 6px; padding: 0; text-align: left; }
+.m-details a { color: var(--accent); }
 @media (min-width: 561px) {
   .m-teams span { display: inline; }
   .m-teams span + span::before { content: " – "; color: var(--muted); font-weight: 400; }

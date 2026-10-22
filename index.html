@@ -265,6 +265,21 @@
       return matchesPromise;
     }
 
+    // Match details (time, venue) are not in the API: our endpoint "api/match/{id}" reads them from the
+    // SZPS match page. Read only when a match is opened, then kept in memory. Without our endpoint
+    // (GitHub Pages) the details show just the link to the SZPS page.
+    const MATCH_PAGE = (id) => `https://system.szps.pl/mecz/${encodeURIComponent(id)}/`;
+    const detailsCache = new Map();
+    function getMatchDetails(id) {
+      if (!HAS_OWN_ENDPOINTS) return Promise.reject(new Error("brak endpointu"));
+      if (!detailsCache.has(id)) {
+        detailsCache.set(id, fetch(`api/match/${encodeURIComponent(id)}`)
+          .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+          .catch((e) => { detailsCache.delete(id); throw e; }));
+      }
+      return detailsCache.get(id);
+    }
+
     const savedAt = (time) => new Date(time).toLocaleString("pl-PL");
     const staleNote = (time) =>
       el("p", "status stale", `API chwilowo niedostępne. Pokazuję zapisane dane z ${savedAt(time)}.`);
@@ -343,7 +358,57 @@
         }
       }
       item.appendChild(res);
+      if (m.match_id && !isBye(m)) makeMatchExpandable(item, m.match_id);
       return item;
+    }
+
+    // a match opens like the teams: click (or Enter / Space) shows its details in the list item below it
+    // (a sibling, not a child, so the link in the details is not nested inside the button)
+    function makeMatchExpandable(item, id) {
+      item.classList.add("expandable");
+      item.tabIndex = 0;
+      item.setAttribute("role", "button");
+      item.setAttribute("aria-expanded", "false");
+      let box = null;
+      const toggle = () => {
+        const open = item.getAttribute("aria-expanded") !== "true";
+        item.setAttribute("aria-expanded", open ? "true" : "false");
+        if (box) { box.hidden = !open; return; }
+        box = el("li", "m-details");
+        box.appendChild(el("p", "status", "Ładowanie szczegółów…"));
+        item.after(box);
+        getMatchDetails(id)
+          .then((d) => fillDetails(box, id, d))
+          .catch(() => fillDetails(box, id, null));
+      };
+      item.addEventListener("click", toggle);
+      item.addEventListener("keydown", (e) => {
+        if (e.target === item && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggle(); }
+      });
+    }
+
+    function fillDetails(box, id, d) {
+      box.replaceChildren();
+      const dl = el("dl");
+      const row = (label, lines) => {
+        if (!lines.length) return;
+        dl.appendChild(el("dt", null, label));
+        const dd = el("dd");
+        lines.forEach((l, i) => { if (i) dd.appendChild(el("br")); dd.append(l); });
+        dl.appendChild(dd);
+      };
+      if (d) {
+        row("Godzina", d.time ? [d.time] : []);
+        row("Miejsce", Array.isArray(d.place) ? d.place : []);
+        row("Numer meczu", d.number ? [d.number] : []);
+      }
+      if (dl.children.length) box.appendChild(dl);
+      else if (HAS_OWN_ENDPOINTS) box.appendChild(el("p", "status", d ? "Brak szczegółów meczu." : "Nie udało się pobrać szczegółów."));
+      const link = el("a", null, "Mecz w systemie SZPS");
+      link.href = MATCH_PAGE(id);
+      link.target = "_blank";
+      link.rel = "noopener";
+      box.appendChild(link);
     }
 
     function renderMatches(box, data, table, team) {
