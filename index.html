@@ -256,10 +256,21 @@
     const getStandings = () => cachedFetch(STANDINGS_URLS, "jks-sms-standings", (d) => Array.isArray(d.tables));
 
     // Match results are fetched only when a team is expanded for the first time, then kept in memory
+    // The API has no start time: our endpoint "api/times" reads it from the SZPS match pages and it is
+    // added to each match as match_time. Without it (GitHub Pages, endpoint down) matches show the date only.
     let matchesPromise = null;
     function getMatches() {
       if (!matchesPromise) {
+        const times = HAS_OWN_ENDPOINTS
+          ? cachedFetch(["api/times"], "jks-sms-times", (d) => d && typeof d.times === "object")
+              .then((r) => r.data.times, () => ({}))
+          : Promise.resolve({});
         matchesPromise = cachedFetch(MATCHES_URLS, "jks-sms-matches", (d) => Array.isArray(d.matches))
+          .then(async (res) => {
+            const t = await times;
+            for (const m of res.data.matches) if (t[m.match_id]) m.match_time = t[m.match_id];
+            return res;
+          })
           .catch((e) => { matchesPromise = null; throw e; });
       }
       return matchesPromise;
@@ -287,17 +298,7 @@
       return { home: +m[1], visitor: +m[2], parts };
     }
 
-    // match_date is "RRRR-MM-DD", possibly followed by a time; the day part alone is used for dates
-    const matchDay = (m) => String(m.match_date || "").slice(0, 10);
-    const isUndated = (m) => !matchDay(m) || matchDay(m) <= "2000-01-01";
-    // start time "GG:MM" from a time field or from the time part of match_date; "00:00" means no time set
-    function matchTime(m) {
-      for (const v of [m.match_time, m.time, m.match_hour, m.hour, String(m.match_date || "").slice(10)]) {
-        const t = /(\d{1,2}):(\d{2})/.exec(v || "");
-        if (t && +t[1] < 24 && +t[2] < 60 && (+t[1] || +t[2])) return t[1].padStart(2, "0") + ":" + t[2];
-      }
-      return "";
-    }
+    const isUndated = (m) => !m.match_date || m.match_date <= "2000-01-01";
     // a blank home or visitor means our team has a bye that round
     const isBye = (m) => !clean(m.home) || !clean(m.visitor);
 
@@ -314,10 +315,10 @@
         dateEl.textContent = "termin do ustalenia";
         dateEl.classList.add("tbd");
       } else {
-        const date = new Date(matchDay(m) + "T12:00:00");
+        const date = new Date(m.match_date + "T12:00:00");
         dateEl.textContent = date.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric" });
         // the time matters only before the match; a bye has no start time
-        const time = !score && !isBye(m) && matchTime(m);
+        const time = !score && !isBye(m) && m.match_time;
         if (time) dateEl.appendChild(el("span", "m-time", `godz. ${time}`));
       }
       item.appendChild(dateEl);
@@ -369,7 +370,7 @@
       const today = new Date().toLocaleDateString("sv-SE");
       const upcoming = all
         // a bye is only worth showing while it is still ahead (local date as YYYY-MM-DD)
-        .filter((m) => !parseScore(m.score) && !(isBye(m) && !isUndated(m) && matchDay(m) < today))
+        .filter((m) => !parseScore(m.score) && !(isBye(m) && !isUndated(m) && m.match_date < today))
         .sort((a, b) => (isUndated(a) - isUndated(b)) || a.match_date.localeCompare(b.match_date));
 
       box.replaceChildren();

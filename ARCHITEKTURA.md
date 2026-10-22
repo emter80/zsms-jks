@@ -208,5 +208,6 @@ pobrała dane z SZPS. Może więc być starsza niż chwila otwarcia strony (nawe
 | `jks.svg`, `jks-light.svg` | obrys napisu JKS (złoty i zielony) |
 | `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` | ikona karty: litera J krojem Monoton (jako ścieżki), zielona na ciemnym tle; SVG, ICO 32 px i PNG 180 px |
 | `functions/api/[name].js` | Cloudflare Pages Function: cache po stronie serwera (`/api/standings`, `/api/matches`) |
+| `functions/api/times.js` | Cloudflare Pages Function `/api/times`: godziny nierozegranych meczów odczytane ze stron `system.szps.pl/mecz/{id}/` (API ich nie podaje), wspólny cache 10 min, każda strona ponownie po 6 h, najwyżej 15 stron na zapytanie |
 | `PROMPT.md` | pełny opis strony do odtworzenia przez AI |
 | `ARCHITEKTURA.md` | ten dokument |
