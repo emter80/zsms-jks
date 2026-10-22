@@ -140,12 +140,21 @@ body {
 .m-teams span { display: block; }
 .m-teams span + span { margin-top: 2px; }
 .m-date.tbd { font-style: italic; }
-/* start time of an upcoming match: under the date, next to it on phones */
-.m-time { display: block; color: var(--text); }
-@media (max-width: 560px) {
-  .m-time { display: inline; }
-  .m-time::before { content: " · "; color: var(--muted); }
+/* a match opens its details (time, venue) from the SZPS match page */
+.match.expandable { cursor: pointer; }
+.match.expandable:hover { background: var(--detail-bg, rgba(255, 255, 255, .04)); }
+.match.expandable:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.match[aria-expanded="true"] { margin-bottom: 0; }
+.m-details {
+  list-style: none; margin: 0 0 6px; padding: 6px 10px 8px 13px; font-size: .86rem;
+  background: var(--panel-2); border-top: 1px dashed var(--line);
 }
+.m-details::before { content: none; }
+.m-details dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 6px; }
+.m-details dt { color: var(--muted); }
+.m-details dd { margin: 0; color: var(--text); }
+.m-details .status { margin: 0 0 6px; padding: 0; text-align: left; }
+.m-details a { color: var(--accent); }
 @media (min-width: 561px) {
   .m-teams span { display: inline; }
   .m-teams span + span::before { content: " – "; color: var(--muted); font-weight: 400; }

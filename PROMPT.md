@@ -40,11 +40,11 @@ występuje jako `home` lub `visitor`.
 
 - Nazwy drużyn mają zbędne spacje na końcu i podwójne spacje. Normalizuj: rozbij po białych znakach
   i złącz pojedynczą spacją.
-- API nie podaje godziny meczu. Pokazuje ją strona meczu `https://system.szps.pl/mecz/{match_id}/`
-  (wiersz „godzina meczu: 18:30”). Pages Function `functions/api/times.js` czyta te strony dla
-  nierozegranych meczów z najbliższych 45 dni (najwyżej 15 stron na zapytanie, każda strona ponownie po 6 h)
-  i zwraca `{ times: { match_id: "GG:MM" } }`. Strona dokleja `godz. GG:MM` przy dacie nierozegranych
-  meczów (bez wolnego losu); bez tego endpointu (GitHub Pages) pokazuje samą datę.
+- API nie podaje szczegółów meczu (godzina, miejsce). Ma je strona `https://system.szps.pl/mecz/{match_id}/`
+  (wiersze „Mecz numer …”, „Mecz rozgrywany w:”, „godzina meczu:”). Kliknięcie meczu (lub Enter/Spacja)
+  rozwija pod nim sekcję: Godzina, Miejsce, Numer meczu i link „Mecz w systemie SZPS”. Dane daje Pages
+  Function `functions/api/match/[id].js` (`{ time, place: [...], number }`, tylko numeryczne id, cache 1 h);
+  bez niej (GitHub Pages) sekcja ma tylko link.
 - `match_date = "2000-01-01"` oznacza „brak terminu”. Pokaż „termin do ustalenia”, a na liście
   najbliższych meczów umieść takie mecze na końcu.
 - Puste `visitor` (spacja) to wolny los. Nie pokazuj takiego meczu na liście najbliższych.
